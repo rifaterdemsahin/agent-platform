@@ -15,9 +15,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const agentRuntimes = new Map();
 
-async function getLLM() {
-  const provider = process.env.LLM_PROVIDER || "anthropic";
-  return createLLM(provider);
+async function getLLM(provider) {
+  const p = provider || process.env.LLM_PROVIDER || "anthropic";
+  return createLLM(p);
 }
 
 async function getRuntime(agentPath) {
@@ -91,11 +91,12 @@ app.post("/api/agents/tree/*/invoke", async (req, res) => {
     const runtime = await getRuntime(agentPath);
     if (!runtime) return res.status(404).json({ error: "Agent not found" });
 
-    const llm = await getLLM();
-    const context = { llm, env: process.env, lastUsage: {} };
+    const provider = req.body.params?.provider || process.env.LLM_PROVIDER || "anthropic";
+    const llm = await getLLM(provider);
+    const context = { llm, provider, env: process.env, lastUsage: {} };
     const result = await runtime.run(req.body, context);
 
-    res.json({ agent: agentPath, result });
+    res.json({ agent: agentPath, provider, result });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }

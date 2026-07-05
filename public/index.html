@@ -352,6 +352,37 @@
     .flow-step code { background: var(--bg); padding: 0.08rem 0.25rem; border-radius: 3px; font-size: 0.65rem; color: var(--accent); }
 
     /* ─── Table ─── */
+    /* ─── Sub-nav (Architecture / Agents) ─── */
+    .arch-subnav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .arch-subnav::-webkit-scrollbar { display: none; }
+    .arch-subnav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .arch-subnav a:hover { color: var(--text); }
+    .arch-subnav a.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .arch-sub-content, .agents-sub-content { display: none; }
+    .arch-sub-content.active, .agents-sub-content.active { display: block; }
+
     /* ─── Architecture tree ─── */
     .tree { padding: 0; list-style: none; }
     .tree-node { margin-left: 1rem; border-left: 1px dashed var(--border); padding-left: 1rem; position: relative; }
@@ -443,13 +474,9 @@
 
   <nav>
     <a class="active" data-page="dashboard">🏠 Dashboard <span class="nav-badge">live</span></a>
-    <a data-page="sanity">🛡 Sanity</a>
-    <a data-page="budget">💰 Budget</a>
-    <a data-page="animation">🎬 Animation</a>
     <a data-page="architecture">🗂 Architecture</a>
-    <a data-page="what">📋 What</a>
-    <a data-page="why">❓ Why</a>
-    <a data-page="how">🔧 How</a>
+    <a data-page="agents">🤖 Agents</a>
+    <a data-page="test">🧪 Test</a>
   </nav>
 
   <main>
@@ -465,115 +492,109 @@
       <div id="dashboard-content">Loading agents...</div>
     </div>
 
-    <div id="page-sanity" class="page"></div>
-    <div id="page-budget" class="page"></div>
-    <div id="page-animation" class="page"></div>
-
     <div id="page-architecture" class="page">
-      <div class="arch-legend">
-        <span><span class="tree-label parent" style="font-size:0.65rem;padding:0.15rem 0.4rem">parent</span> top-level agent</span>
-        <span><span class="tree-label child" style="font-size:0.65rem;padding:0.15rem 0.4rem">sub-agent</span> inherits from parent</span>
-        <span><span class="tree-label standalone" style="font-size:0.65rem;padding:0.15rem 0.4rem">standalone</span> independent agent</span>
+      <div class="arch-subnav">
+        <a class="arch-sub-link active" data-arch-sub="what">📋 What</a>
+        <a class="arch-sub-link" data-arch-sub="why">❓ Why</a>
+        <a class="arch-sub-link" data-arch-sub="how">🔧 How</a>
       </div>
-      <div id="architecture-content">Loading hierarchy...</div>
-    </div>
 
-    <div id="page-what" class="page">
-      <div class="prose">
-        <h2>What is the Agent Platform?</h2>
-        <p>A multi-agent runtime where each agent is a self-contained unit with its own <strong>spec</strong>, <strong>code</strong>, and <strong>skills</strong>. Agents run as background processes, exposed over a REST API, and powered by LLMs (Claude via Anthropic SDK).</p>
+      <div id="arch-sub-what" class="arch-sub-content active">
+        <div class="prose">
+          <h2>What is the Agent Platform?</h2>
+          <p>A multi-agent runtime where each agent is a self-contained unit with its own <strong>spec</strong>, <strong>code</strong>, and <strong>skills</strong>. Agents run as background processes, exposed over a REST API, and powered by LLMs (Claude via Anthropic SDK).</p>
 
-        <h3>What agents exist</h3>
-        <div style="overflow-x:auto">
-        <table class="compare-table">
-          <tr><th>Agent</th><th>Role</th><th>Skills</th><th>Triggers</th></tr>
-          <tr><td><code>sanity-check</code></td><td>Code validation, lint, typecheck, config, deploy readiness</td><td>5</td><td>pre-commit, pre-deploy, scheduled, on-demand</td></tr>
-          <tr><td><code>budget</code></td><td>Cost estimation, usage tracking, budget alerts, optimization, forecasting</td><td>5</td><td>scheduled, on-demand, threshold-alert</td></tr>
-        </table>
-        </div>
+          <h3>What agents exist</h3>
+          <div style="overflow-x:auto">
+          <table class="compare-table">
+            <tr><th>Agent</th><th>Role</th><th>Skills</th><th>Triggers</th></tr>
+            <tr><td><code>sanity-check</code></td><td>Code validation, lint, typecheck, config, deploy readiness</td><td>5</td><td>pre-commit, pre-deploy, scheduled, on-demand</td></tr>
+            <tr><td><code>budget</code></td><td>Cost estimation, usage tracking, budget alerts, optimization, forecasting</td><td>5</td><td>scheduled, on-demand, threshold-alert</td></tr>
+          </table>
+          </div>
 
-        <h3>What each agent contains</h3>
-        <pre><code>agents/&lt;name&gt;/
+          <h3>What each agent contains</h3>
+          <pre><code>agents/&lt;name&gt;/
   ├── agent.json          # SPEC: name, version, description, skills[], runtime, triggers[]
   ├── index.js            # CODE: agent entrypoint — exports { agent, run() }
   └── skills/             # SKILLS: standalone modules callable by name
       └── skill-name.js</code></pre>
 
-        <h3>What the runtime does</h3>
-        <p><code>runtime/agent-loader.js</code> scans the <code>agents/</code> directory at startup, parses every <code>agent.json</code>, and imports each agent's code. The Express server exposes:</p>
-        <ul>
-          <li><code>GET /api/agents</code> — list all agents</li>
-          <li><code>GET /api/agents/:name</code> — get agent spec</li>
-          <li><code>GET /api/agents/:name/skills</code> — list skills</li>
-          <li><code>POST /api/agents/:name/invoke</code> — execute a skill</li>
-          <li><code>GET /api/skills</code> — all skills across all agents</li>
-        </ul>
+          <h3>What the runtime does</h3>
+          <p><code>runtime/agent-loader.js</code> scans the <code>agents/</code> directory at startup, parses every <code>agent.json</code>, and imports each agent's code. The Express server exposes:</p>
+          <ul>
+            <li><code>GET /api/agents</code> — list all agents</li>
+            <li><code>GET /api/agents/:name</code> — get agent spec</li>
+            <li><code>GET /api/agents/:name/skills</code> — list skills</li>
+            <li><code>POST /api/agents/:name/invoke</code> — execute a skill</li>
+            <li><code>GET /api/skills</code> — all skills across all agents</li>
+          </ul>
 
-        <div class="highlight-box">
-          <h3>Agent = spec + code + skills in one folder</h3>
-          <p>No YAML config sprawl. No separate service per agent. One Express server loads every agent from the filesystem. Add a folder, push to GitHub, GitHub Actions deploys to Fly.io — the new agent is live.</p>
+          <div class="highlight-box">
+            <h3>Agent = spec + code + skills in one folder</h3>
+            <p>No YAML config sprawl. No separate service per agent. One Express server loads every agent from the filesystem. Add a folder, push to GitHub, GitHub Actions deploys to Fly.io — the new agent is live.</p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="page-why" class="page">
-      <div class="prose">
-        <h2>Why an agent platform?</h2>
+      <div id="arch-sub-why" class="arch-sub-content">
+        <div class="prose">
+          <h2>Why an agent platform?</h2>
 
-        <h3>Problem</h3>
-        <p>Every project needs the same background checks — linting, type safety, env validation, cost tracking, deployment readiness. Building these from scratch per project wastes time and leads to inconsistency.</p>
+          <h3>Problem</h3>
+          <p>Every project needs the same background checks — linting, type safety, env validation, cost tracking, deployment readiness. Building these from scratch per project wastes time and leads to inconsistency.</p>
 
-        <h3>Why not separate services?</h3>
-        <ul>
-          <li>Fragmented — each service has its own deploy, config, auth, monitoring</li>
-          <li>Inconsistent — different APIs, different error shapes, different logging</li>
-          <li>Hard to discover — no central registry of what agents exist and what they can do</li>
-          <li>Duplicate LLM plumbing — every service reinvents the Anthropic integration</li>
-        </ul>
+          <h3>Why not separate services?</h3>
+          <ul>
+            <li>Fragmented — each service has its own deploy, config, auth, monitoring</li>
+            <li>Inconsistent — different APIs, different error shapes, different logging</li>
+            <li>Hard to discover — no central registry of what agents exist and what they can do</li>
+            <li>Duplicate LLM plumbing — every service reinvents the Anthropic integration</li>
+          </ul>
 
-        <h3>Why this approach</h3>
-        <div style="overflow-x:auto">
-        <table class="compare-table">
-          <tr><th>Concern</th><th>Separate Services</th><th>Agent Platform</th></tr>
-          <tr><td>Add an agent</td><td>New repo, new deploy, new CI, new auth</td><td>One folder, one push</td></tr>
-          <tr><td>Discoverability</td><td>Docs get stale</td><td><code>GET /api/agents</code> is always current</td></tr>
-          <tr><td>LLM access</td><td>Each service configures its own</td><td>Injected via <code>context.llm</code></td></tr>
-          <tr><td>Background execution</td><td>Cron per service</td><td>Declarative <code>pollingIntervalMs</code> in spec</td></tr>
-          <tr><td>Call from other projects</td><td>Discover URL, read docs</td><td><code>fetch("/api/agents/:name/invoke")</code></td></tr>
-          <tr><td>Skill reuse</td><td>Copy-paste between repos</td><td>Skills are modules in <code>skills/</code> dir</td></tr>
-        </table>
+          <h3>Why this approach</h3>
+          <div style="overflow-x:auto">
+          <table class="compare-table">
+            <tr><th>Concern</th><th>Separate Services</th><th>Agent Platform</th></tr>
+            <tr><td>Add an agent</td><td>New repo, new deploy, new CI, new auth</td><td>One folder, one push</td></tr>
+            <tr><td>Discoverability</td><td>Docs get stale</td><td><code>GET /api/agents</code> is always current</td></tr>
+            <tr><td>LLM access</td><td>Each service configures its own</td><td>Injected via <code>context.llm</code></td></tr>
+            <tr><td>Background execution</td><td>Cron per service</td><td>Declarative <code>pollingIntervalMs</code> in spec</td></tr>
+            <tr><td>Call from other projects</td><td>Discover URL, read docs</td><td><code>fetch("/api/agents/:name/invoke")</code></td></tr>
+            <tr><td>Skill reuse</td><td>Copy-paste between repos</td><td>Skills are modules in <code>skills/</code> dir</td></tr>
+          </table>
+          </div>
+
+          <blockquote>
+            The agent platform treats agents like npm packages — self-contained, versioned, discoverable, and invocable over HTTP. But instead of publishing to a registry, you push to a monorepo and the runtime picks them up.
+          </blockquote>
         </div>
-
-        <blockquote>
-          The agent platform treats agents like npm packages — self-contained, versioned, discoverable, and invocable over HTTP. But instead of publishing to a registry, you push to a monorepo and the runtime picks them up.
-        </blockquote>
       </div>
-    </div>
 
-    <div id="page-how" class="page">
-      <div class="prose">
-        <h2>How to iterate on the Agent Platform</h2>
+      <div id="arch-sub-how" class="arch-sub-content">
+        <div class="prose">
+          <h2>How to iterate on the Agent Platform</h2>
 
-        <h3>How to add a new agent</h3>
-        <ol>
-          <li>Create <code>agents/&lt;name&gt;/</code> folder</li>
-          <li>Create <code>agent.json</code> (name, version, description, skills[], runtime, triggers[])</li>
-          <li>Create <code>index.js</code> exporting <code>{ agent, run() }</code></li>
-          <li>Create skill modules in <code>skills/</code></li>
-          <li><code>git add agents/&lt;name&gt;/ && git commit && git push origin main</code></li>
-        </ol>
-        <p>GitHub Actions auto-deploys to Fly.io. The agent is live on the next API poll.</p>
+          <h3>How to add a new agent</h3>
+          <ol>
+            <li>Create <code>agents/&lt;name&gt;/</code> folder</li>
+            <li>Create <code>agent.json</code> (name, version, description, skills[], runtime, triggers[])</li>
+            <li>Create <code>index.js</code> exporting <code>{ agent, run() }</code></li>
+            <li>Create skill modules in <code>skills/</code></li>
+            <li><code>git add agents/&lt;name&gt;/ && git commit && git push origin main</code></li>
+          </ol>
+          <p>GitHub Actions auto-deploys to Fly.io. The agent is live on the next API poll.</p>
 
-        <h3>How to update an agent's skills</h3>
-        <ol>
-          <li>Edit <code>agents/&lt;name&gt;/skills/&lt;skill&gt;.js</code></li>
-          <li>If adding a new skill, add to <code>skills[]</code> in <code>agent.json</code></li>
-          <li>Add the skill case in <code>run()</code> in <code>index.js</code></li>
-          <li>Push to GitHub — Fly.io redeploys automatically</li>
-        </ol>
+          <h3>How to update an agent's skills</h3>
+          <ol>
+            <li>Edit <code>agents/&lt;name&gt;/skills/&lt;skill&gt;.js</code></li>
+            <li>If adding a new skill, add to <code>skills[]</code> in <code>agent.json</code></li>
+            <li>Add the skill case in <code>run()</code> in <code>index.js</code></li>
+            <li>Push to GitHub — Fly.io redeploys automatically</li>
+          </ol>
 
-        <h3>How to call agents from other projects</h3>
-        <pre><code>// JavaScript
+          <h3>How to call agents from other projects</h3>
+          <pre><code>// JavaScript
 const res = await fetch("https://agent-platform-9a3f.fly.dev/api/agents/sanity-check/invoke", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -587,23 +608,72 @@ r = requests.post(
   json={"skill":"estimate-cost","params":{"model":"claude-sonnet-4-20250514","inputTokens":5000,"outputTokens":2000,"provider":"anthropic"}}
 )</code></pre>
 
-        <h3>How deployment works</h3>
-        <div class="flow-grid">
-          <div class="flow-step"><div class="step-num">1. Push</div><div>To <code>main</code> on GitHub</div></div>
-          <div class="flow-step"><div class="step-num">2. CI</div><div>GitHub Actions triggers <code>deploy.yml</code> + <code>pages.yml</code></div></div>
-          <div class="flow-step"><div class="step-num">3. Build</div><div><code>flyctl deploy</code> builds Docker image</div></div>
-          <div class="flow-step"><div class="step-num">4. Ship</div><div>Fly.io rolls out new machines (zero-downtime, 2 instances)</div></div>
-          <div class="flow-step"><div class="step-num">5. Verify</div><div>Health check hits <code>/api/agents</code> every 30s</div></div>
-          <div class="flow-step"><div class="step-num">6. Pages</div><div>GitHub Pages deploys static dashboard from <code>public/</code></div></div>
-        </div>
+          <h3>How deployment works</h3>
+          <div class="flow-grid">
+            <div class="flow-step"><div class="step-num">1. Push</div><div>To <code>main</code> on GitHub</div></div>
+            <div class="flow-step"><div class="step-num">2. CI</div><div>GitHub Actions triggers <code>deploy.yml</code> + <code>pages.yml</code></div></div>
+            <div class="flow-step"><div class="step-num">3. Build</div><div><code>flyctl deploy</code> builds Docker image</div></div>
+            <div class="flow-step"><div class="step-num">4. Ship</div><div>Fly.io rolls out new machines (zero-downtime, 2 instances)</div></div>
+            <div class="flow-step"><div class="step-num">5. Verify</div><div>Health check hits <code>/api/agents</code> every 30s</div></div>
+            <div class="flow-step"><div class="step-num">6. Pages</div><div>GitHub Pages deploys static dashboard from <code>public/</code></div></div>
+          </div>
 
-        <h3>How to run locally</h3>
-        <pre><code>cp .env.example .env    # add your ANTHROPIC_API_KEY
+          <h3>How to run locally</h3>
+          <pre><code>cp .env.example .env    # add your ANTHROPIC_API_KEY
 npm install
 npm run dev              # http://localhost:8080</code></pre>
 
-        <h3>How to set secrets</h3>
-        <pre><code>flyctl secrets set ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+          <h3>How to set secrets</h3>
+          <pre><code>flyctl secrets set ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+        </div>
+      </div>
+
+      <div class="arch-legend" style="margin-top:1.5rem">
+        <span><span class="tree-label parent" style="font-size:0.65rem;padding:0.15rem 0.4rem">parent</span> top-level agent</span>
+        <span><span class="tree-label child" style="font-size:0.65rem;padding:0.15rem 0.4rem">sub-agent</span> inherits from parent</span>
+        <span><span class="tree-label standalone" style="font-size:0.65rem;padding:0.15rem 0.4rem">standalone</span> independent agent</span>
+      </div>
+      <div id="architecture-content">Loading hierarchy...</div>
+    </div>
+
+    <div id="page-agents" class="page">
+      <div class="arch-subnav">
+        <a class="agents-sub-link active" data-agents-sub="sanity-check">🛡 Sanity Check</a>
+        <a class="agents-sub-link" data-agents-sub="animation">🎬 Animation</a>
+        <a class="agents-sub-link" data-agents-sub="budget">💰 Budget</a>
+      </div>
+      <div id="agents-sub-sanity-check" class="agents-sub-content active"></div>
+      <div id="agents-sub-animation" class="agents-sub-content"></div>
+      <div id="agents-sub-budget" class="agents-sub-content"></div>
+    </div>
+
+    <div id="page-test" class="page">
+      <div class="prose">
+        <h2>Test Agents</h2>
+        <p>Select an agent, choose a skill, and invoke it to see results. Supports Anthropic and Deepseek backends.</p>
+      </div>
+      <div class="card" style="margin-top:1rem">
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem">
+          <div style="flex:1;min-width:200px">
+            <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Agent</label>
+            <select id="test-agent" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem" onchange="onTestAgentChange()"></select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Skill</label>
+            <select id="test-skill" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem"></select>
+          </div>
+          <div style="flex:1;min-width:150px">
+            <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">LLM Provider</label>
+            <select id="test-provider" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem">
+              <option value="anthropic">Anthropic</option>
+              <option value="deepseek">Deepseek</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Params (JSON)</label>
+        <textarea id="test-params" rows="4" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem;font-family:monospace;margin-bottom:0.75rem">{"path": "."}</textarea>
+        <button onclick="runTest()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.5rem 1.5rem;font-size:0.8rem;cursor:pointer;font-weight:600">Invoke Agent</button>
+        <pre id="test-result" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.75rem;margin-top:0.75rem;font-size:0.72rem;font-family:monospace;white-space:pre-wrap;max-height:400px;overflow-y:auto;display:none"></pre>
       </div>
     </div>
   </main>
@@ -639,13 +709,93 @@ npm run dev              # http://localhost:8080</code></pre>
         const pageId = "page-" + link.dataset.page;
         document.getElementById(pageId).classList.add("active");
         const p = link.dataset.page;
-        if (p === "sanity") renderAgentPage("sanity-check");
-        else if (p === "budget") renderAgentPage("budget");
-        else if (p === "animation") renderAgentPage("animation");
-        else if (p === "architecture") renderArchitecture();
+        if (p === "architecture") {
+          renderArchitecture();
+          switchArchSub(document.querySelector(".arch-sub-link.active")?.dataset.archSub || "what");
+        } else if (p === "agents") {
+          switchAgentsSub(document.querySelector(".agents-sub-link.active")?.dataset.agentsSub || "sanity-check");
+        } else if (p === "test") {
+          populateTestAgents();
+        }
+        // Also render agents sub-content if agents page is active
+        const activeAgentsSub = document.querySelector(".agents-sub-link.active");
+        if (activeAgentsSub && document.getElementById("page-agents").classList.contains("active")) {
+          switchAgentsSub(activeAgentsSub.dataset.agentsSub);
+        }
         link.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       });
     });
+
+    /* ─── Architecture sub-nav ─── */
+    document.querySelectorAll(".arch-sub-link").forEach(link => {
+      link.addEventListener("click", () => {
+        switchArchSub(link.dataset.archSub);
+      });
+    });
+    function switchArchSub(sub) {
+      document.querySelectorAll(".arch-sub-link").forEach(l => l.classList.remove("active"));
+      document.querySelectorAll(".arch-sub-content").forEach(c => c.classList.remove("active"));
+      const activeLink = document.querySelector(`.arch-sub-link[data-arch-sub="${sub}"]`);
+      if (activeLink) activeLink.classList.add("active");
+      const content = document.getElementById("arch-sub-" + sub);
+      if (content) content.classList.add("active");
+    }
+
+    /* ─── Agents sub-nav ─── */
+    document.querySelectorAll(".agents-sub-link").forEach(link => {
+      link.addEventListener("click", () => {
+        switchAgentsSub(link.dataset.agentsSub);
+      });
+    });
+    function switchAgentsSub(sub) {
+      document.querySelectorAll(".agents-sub-link").forEach(l => l.classList.remove("active"));
+      document.querySelectorAll(".agents-sub-content").forEach(c => c.classList.remove("active"));
+      const activeLink = document.querySelector(`.agents-sub-link[data-agents-sub="${sub}"]`);
+      if (activeLink) activeLink.classList.add("active");
+      const content = document.getElementById("agents-sub-" + sub);
+      if (content) content.classList.add("active");
+      renderAgentPage(sub);
+    }
+
+    /* ─── Test page ─── */
+    function populateTestAgents() {
+      const sel = document.getElementById("test-agent");
+      if (!sel || !agentCache.length) return;
+      sel.innerHTML = agentCache.filter(a => a.skills && a.skills.length).map(a =>
+        `<option value="${a.name}">${a.name}</option>`
+      ).join("");
+      onTestAgentChange();
+    }
+    function onTestAgentChange() {
+      const agentName = document.getElementById("test-agent").value;
+      const skillSel = document.getElementById("test-skill");
+      const agent = agentCache.find(a => a.name === agentName);
+      if (!agent) { skillSel.innerHTML = ""; return; }
+      skillSel.innerHTML = (agent.skills || []).map(s =>
+        `<option value="${s.name}">${s.name}</option>`
+      ).join("");
+    }
+    async function runTest() {
+      const agentName = document.getElementById("test-agent").value;
+      const skill = document.getElementById("test-skill").value;
+      const provider = document.getElementById("test-provider").value;
+      const paramsRaw = document.getElementById("test-params").value;
+      const resultEl = document.getElementById("test-result");
+      resultEl.style.display = "block";
+      resultEl.textContent = "Invoking " + agentName + "/" + skill + " with " + provider + "...";
+      try {
+        const params = JSON.parse(paramsRaw);
+        const res = await fetch(`${API}/agents/tree/${agentName}/invoke`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ skill, params: { ...params, provider } })
+        });
+        const data = await res.json();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultEl.textContent = "Error: " + err.message;
+      }
+    }
 
     /* ─── Connection polling ─── */
     async function fetchAgents() {
@@ -781,10 +931,9 @@ npm run dev              # http://localhost:8080</code></pre>
 
     /* ─── Agent detail page ─── */
     function renderAgentPage(agentName) {
+      const pageEl = document.getElementById("agents-sub-" + agentName);
+      if (!pageEl) return;
       const agent = agentCache.find(a => a.name === agentName);
-      const pageMap = { "sanity-check": "sanity", "budget": "budget", "animation": "animation" };
-      const pageKey = pageMap[agentName] || agentName;
-      const pageEl = document.getElementById("page-" + pageKey);
       if (!agent) {
         pageEl.innerHTML = `<div class="card"><p style="color:var(--orange)">Agent "${agentName}" not found.</p></div>`;
         return;
