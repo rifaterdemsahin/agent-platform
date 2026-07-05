@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Platform</title>
+  <title>Agent Platform — LLM-Powered Background Agents</title>
   <style>
     :root {
       --bg: #0a0a0f;
@@ -15,6 +15,7 @@
       --accent-glow: #7c5cfc55;
       --green: #34d399;
       --orange: #f59e0b;
+      --red: #ef4444;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -31,19 +32,63 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
     header h1 { font-size: 1.5rem; font-weight: 700; }
     header h1 span { color: var(--accent); }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
     .status-dot {
       width: 10px; height: 10px;
       background: var(--green);
       border-radius: 50%;
       display: inline-block;
-      margin-right: 0.5rem;
       box-shadow: 0 0 8px var(--green);
     }
-    .status { color: var(--muted); font-size: 0.875rem; }
-    main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    .status-dot.connecting { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+    .status-text { color: var(--muted); font-size: 0.875rem; }
+    .last-poll { color: var(--muted); font-size: 0.7rem; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
+    .info-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .info-bar a { color: var(--accent); text-decoration: none; }
+    .info-bar a:hover { text-decoration: underline; }
+    .bg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: #0a3a1a;
+      color: var(--green);
+      font-weight: 600;
+    }
+    .bg-badge .pulse {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     .agent-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -53,16 +98,23 @@
       transition: border-color 0.2s;
     }
     .agent-card:hover { border-color: var(--accent); }
-    .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+    .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
     .agent-name { font-size: 1.25rem; font-weight: 600; }
+    .agent-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .agent-version { color: var(--muted); font-size: 0.8rem; background: var(--bg); padding: 0.15rem 0.5rem; border-radius: 4px; }
-    .agent-desc { color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem; }
+    .agent-desc { color: var(--muted); margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .specs-row {
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+      margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--muted);
+    }
+    .specs-row .label { color: var(--accent); }
+    .specs-row code { background: var(--bg); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.7rem; }
     .skills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
     .skill-tag {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.25rem 0.75rem;
+      padding: 0.3rem 0.75rem;
       font-size: 0.8rem;
       color: var(--accent);
       cursor: pointer;
@@ -89,17 +141,17 @@
       padding: 0.5rem;
       border-radius: 4px;
       overflow-x: auto;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       margin-top: 0.5rem;
+      white-space: pre-wrap;
     }
     .endpoints { margin-top: 1rem; }
     .endpoints summary { cursor: pointer; color: var(--muted); font-size: 0.8rem; }
+    .endpoints summary:hover { color: var(--text); }
     .endpoint { font-size: 0.75rem; padding: 0.25rem 0; }
-    .endpoint .method { color: var(--accent); font-weight: 600; margin-right: 0.5rem; }
+    .endpoint .method { color: var(--accent); font-weight: 600; margin-right: 0.5rem; min-width: 40px; display: inline-block; }
     .endpoint .method.post { color: var(--orange); }
     .endpoint .path { color: var(--muted); font-family: monospace; }
-    .api-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-    .api-section h2 { margin-bottom: 1rem; font-size: 1.1rem; }
     .trigger-badge {
       display: inline-block;
       font-size: 0.7rem;
@@ -109,48 +161,151 @@
       color: var(--accent);
       margin-right: 0.4rem;
     }
+    .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .section h2 { margin-bottom: 1rem; font-size: 1rem; }
+    .flow-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+    .flow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.75rem;
+    }
+    .flow-step .step-num {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+    .flow-step code { background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.7rem; color: var(--accent); }
+    .links-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem; }
+    .links-row a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .links-row a:hover { text-decoration: underline; }
     footer {
       text-align: center;
       padding: 2rem;
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
   </style>
 </head>
 <body>
   <header>
     <h1><span>◈</span> Agent Platform</h1>
-    <div class="status"><span class="status-dot"></span>Operational</div>
+    <div class="status-row">
+      <span class="status-dot" id="conn-dot"></span>
+      <span class="status-text" id="conn-status">Connecting...</span>
+      <span class="last-poll" id="last-poll"></span>
+    </div>
   </header>
   <main>
+    <div class="info-bar">
+      <span>Source: <a id="api-link" href="#" target="_blank">Fly.io API</a></span>
+      <div class="links-row">
+        <a href="https://github.com/rifaterdemsahin/agent-platform" target="_blank">GitHub</a>
+        <a href="https://github.com/rifaterdemsahin/agent-platform/blob/main/README.md" target="_blank">README</a>
+        <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents" target="_blank">Agent Specs</a>
+        <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents" target="_blank">Agent Code</a>
+      </div>
+    </div>
+
     <div id="agents-container">Loading agents...</div>
-    <div class="api-section" id="api-all-skills"></div>
+
+    <div class="section" id="api-all-skills"></div>
+
+    <div class="section">
+      <h2>Agent Lifecycle &amp; Architecture</h2>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num">1. Spec</div>
+          <div>Define your agent in <code>agents/&lt;name&gt;/agent.json</code> — name, version, description, skills, runtime, triggers.</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2. Code</div>
+          <div>Implement skills in <code>agents/&lt;name&gt;/index.js</code>. Each skill is an async function that receives <code>(params, context)</code>.</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">3. Runtime</div>
+          <div><code>runtime/agent-loader.js</code> scans <code>agents/</code> at startup. Agents are cached in memory and ready to invoke.</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">4. API</div>
+          <div>Express serves <code>/api/agents/:name/invoke</code>. Agents receive the Anthropic LLM client via <code>context</code>.</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">5. Background</div>
+          <div>Agents declare <code>"background": true</code> with <code>pollingIntervalMs</code>. External cron or scheduler pings invoke endpoints.</div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">6. Deploy</div>
+          <div>Push to <code>main</code> → GitHub Actions runs <code>flyctl deploy</code> → Fly.io publishes HTTPS.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Updating Agent Skills</h2>
+      <p style="color:var(--muted);font-size:0.85rem;">
+        Skills live in <code style="background:var(--bg);padding:0.1rem 0.4rem;border-radius:3px;">agents/&lt;name&gt;/skills/&lt;skill&gt;.js</code>.
+        Edit the skill file, add it to the agent's <code>skills</code> array in <code>agent.json</code>, push to GitHub, and Fly.io redeploys automatically.
+      </p>
+    </div>
   </main>
-  <footer>LLM-powered background agents &mdash; deployable on Fly.io</footer>
+  <footer>Agent Platform &middot; LLM-powered background agents &middot; Fly.io + GitHub Pages</footer>
+
   <script>
-    const API = "/api";
+    const API = "https://agent-platform-9a3f.fly.dev/api";
+
+    let pollTimer;
 
     async function fetchAgents() {
+      const dot = document.getElementById("conn-dot");
+      const status = document.getElementById("conn-status");
+      dot.className = "status-dot connecting";
+      status.textContent = "Connecting...";
+
       try {
         const res = await fetch(`${API}/agents`);
         const data = await res.json();
+        dot.className = "status-dot";
+        status.textContent = `${data.agents.length} agents operational`;
         renderAgents(data.agents);
         renderAllSkills(data.agents);
       } catch (err) {
+        dot.className = "status-dot offline";
+        status.textContent = "API unreachable";
         document.getElementById("agents-container").innerHTML =
-          `<p style="color:var(--orange)">Cannot connect to agent API. Is the server running?</p>`;
+          `<div class="agent-card"><p style="color:var(--orange)">Cannot reach Fly.io API. Server may be restarting.</p></div>`;
       }
+
+      document.getElementById("last-poll").textContent =
+        "Last poll: " + new Date().toLocaleTimeString();
+      document.getElementById("api-link").href = API + "/agents";
+      document.getElementById("api-link").textContent = API + "/agents";
+
+      pollTimer = setTimeout(fetchAgents, 15000);
     }
 
     function renderAgents(agents) {
-      const container = document.getElementById("agents-container");
-      container.innerHTML = agents.map(a => `
+      document.getElementById("agents-container").innerHTML = agents.map(a => `
         <div class="agent-card" id="agent-${a.name}">
           <div class="agent-header">
-            <div class="agent-name">${a.name}</div>
-            <div class="agent-version">v${a.version}</div>
+            <div class="agent-name">${a.name} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "background" : "on-demand"}</span></div>
+            <div class="agent-meta">
+              <div class="agent-version">v${a.version}</div>
+            </div>
           </div>
           <div class="agent-desc">${a.description || ""}</div>
+          <div class="specs-row">
+            <span><span class="label">Spec:</span> <code>agents/${a.name}/agent.json</code></span>
+            <span><span class="label">Code:</span> <code>agents/${a.name}/index.js</code></span>
+            <span><span class="label">Skills dir:</span> <code>agents/${a.name}/skills/</code></span>
+            <span><span class="label">LLM:</span> ${a.runtime?.llm || "—"}</span>
+            <span><span class="label">Poll:</span> ${a.runtime?.pollingIntervalMs ? (a.runtime.pollingIntervalMs / 1000) + "s" : "—"}</span>
+          </div>
           <div style="margin-bottom:0.5rem">${(a.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
           <div class="skills">${(a.skills || []).map(s => `
             <span class="skill-tag" onclick="toggleSkill('${a.name}', '${s.name}')" title="${s.description}">${s.name}</span>
@@ -158,10 +313,10 @@
           <div id="skill-detail-${a.name}"></div>
           <details class="endpoints">
             <summary>API Endpoints</summary>
-            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/${a.name}</span></div>
-            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/${a.name}/skills</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">${a.api?.invokeUrl?.replace('/invoke','') || "/api/agents/" + a.name}</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">${a.api?.skillsUrl || "/api/agents/" + a.name + "/skills"}</span></div>
             <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/${a.name}/code</span></div>
-            <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/${a.name}/invoke</span></div>
+            <div class="endpoint"><span class="method post">POST</span><span class="path">${a.api?.invokeUrl || "/api/agents/" + a.name + "/invoke"}</span></div>
           </details>
         </div>
       `).join("");
@@ -175,16 +330,25 @@
         return;
       }
       try {
-        const res = await fetch(`${API}/agents/${agentName}/skills/${skillName}`);
-        const data = await res.json();
+        const [skillRes, codeRes] = await Promise.all([
+          fetch(`${API}/agents/${agentName}/skills/${skillName}`),
+          fetch(`${API}/agents/${agentName}/skills`)
+        ]);
+        const skillData = await skillRes.json();
+        const fullSkills = await codeRes.json();
+        const skillMeta = (fullSkills.skills || []).find(s => s.name === skillName);
+
         detailEl.innerHTML = `
           <div class="skill-detail open">
             <h4>${skillName}</h4>
-            <p style="color:var(--muted)">Code: <code>${data.codePath || "—"}</code></p>
+            <p>${skillMeta?.description || ""}</p>
+            <p style="margin-top:0.4rem;">Code path: <code>${skillData.codePath || "—"}</code></p>
+            <p style="margin-top:0.2rem;">Skill repo path: <code>agents/${agentName}/skills/${skillName}.js</code></p>
+            ${skillMeta?.parameters ? `<pre>Parameters:\n${JSON.stringify(skillMeta.parameters, null, 2)}</pre>` : ""}
           </div>`;
         detailEl.dataset.active = skillName;
       } catch {
-        detailEl.innerHTML = "";
+        detailEl.innerHTML = `<div class="skill-detail open"><p style="color:var(--orange)">Failed to load skill details.</p></div>`;
       }
     }
 
@@ -195,11 +359,6 @@
         <div class="skills">
           ${all.map(s => `<span class="skill-tag" title="${s.description}">${s.agent}/${s.name}</span>`).join("")}
         </div>
-        <details class="endpoints">
-          <summary>Global API</summary>
-          <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents</span> — list all agents</div>
-          <div class="endpoint"><span class="method">GET</span><span class="path">/api/skills</span> — list all skills</div>
-        </details>
       `;
     }
 
