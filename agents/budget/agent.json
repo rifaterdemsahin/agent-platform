@@ -1,7 +1,7 @@
 {
   "name": "budget",
   "version": "1.0.0",
-  "description": "A background agent that monitors costs, estimates LLM token usage, tracks compute spend, and alerts when budgets are exceeded. Works across projects and deployments.",
+  "description": "Parent budget agent — manages budget thresholds, alerts, and delegates LLM cost tracking to llm-budget sub-agent and personal finance to personal-budget sub-agent.",
   "runtime": {
     "type": "node",
     "llm": "claude-sonnet-4-20250514",
@@ -9,24 +9,6 @@
     "pollingIntervalMs": 60000
   },
   "skills": [
-    {
-      "name": "estimate-cost",
-      "description": "Estimates the cost of an LLM call based on model, token count, and provider pricing",
-      "parameters": {
-        "model": "string — model identifier",
-        "inputTokens": "number",
-        "outputTokens": "number",
-        "provider": "string — 'anthropic' | 'openai' | 'google'"
-      }
-    },
-    {
-      "name": "track-usage",
-      "description": "Tracks cumulative token usage and cost for a project or agent over time",
-      "parameters": {
-        "projectId": "string",
-        "period": "string — 'daily' | 'weekly' | 'monthly' | 'total'"
-      }
-    },
     {
       "name": "set-budget",
       "description": "Sets a budget threshold and returns alert configuration",
@@ -38,19 +20,23 @@
       }
     },
     {
-      "name": "optimize-costs",
-      "description": "Analyzes usage patterns and suggests cost optimizations (model changes, prompt shortening, caching)",
+      "name": "get-status",
+      "description": "Returns overall budget status across all sub-agents (LLM + personal)",
       "parameters": {
         "projectId": "string"
       }
+    }
+  ],
+  "subAgents": [
+    {
+      "name": "llm-budget",
+      "path": "llm-budget",
+      "description": "LLM cost tracking — estimates, tracks usage, optimizes spend, forecasts costs"
     },
     {
-      "name": "forecast",
-      "description": "Projects future costs based on historical usage trends",
-      "parameters": {
-        "projectId": "string",
-        "daysAhead": "number"
-      }
+      "name": "personal-budget",
+      "path": "personal-budget",
+      "description": "Personal finance tracking — expense logging, savings goals, monthly reports, spending categories"
     }
   ],
   "entrypoint": "index.js",
@@ -59,5 +45,6 @@
     "invokeUrl": "/api/agents/budget/invoke",
     "skillsUrl": "/api/agents/budget/skills",
     "statusUrl": "/api/agents/budget/status"
-  }
+  },
+  "inherits": {}
 }

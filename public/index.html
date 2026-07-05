@@ -1,11 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Platform — LLM-Powered Background Agents</title>
   <style>
     :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --border: #dee2e6;
+      --text: #212529;
+      --muted: #6c757d;
+      --accent: #6741d9;
+      --accent-glow: #6741d922;
+      --green: #2b8a3e;
+      --orange: #e67700;
+      --red: #c92a2a;
+      --blue: #1c7ed6;
+      --inverse: #0a0a0f;
+    }
+    [data-theme="dark"] {
       --bg: #0a0a0f;
       --surface: #13131a;
       --border: #2a2a3a;
@@ -16,7 +30,10 @@
       --green: #34d399;
       --orange: #f59e0b;
       --red: #ef4444;
+      --blue: #60a5fa;
+      --inverse: #f8f9fa;
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -24,101 +41,180 @@
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      transition: background 0.2s, color 0.2s;
     }
+
+    /* ─── Header ─── */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 1.5rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-    header h1 { font-size: 1.5rem; font-weight: 700; }
-    header h1 span { color: var(--accent); }
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .status-dot {
-      width: 10px; height: 10px;
-      background: var(--green);
-      border-radius: 50%;
-      display: inline-block;
-      box-shadow: 0 0 8px var(--green);
-    }
-    .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
-    .status-dot.connecting { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
-    .status-text { color: var(--muted); font-size: 0.875rem; }
-    .last-poll { color: var(--muted); font-size: 0.7rem; }
-    main { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
-    .info-bar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
       padding: 0.75rem 1rem;
-      margin-bottom: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 0.5rem;
-      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+    header h1 span { color: var(--accent); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 6px var(--green);
+      flex-shrink: 0;
+    }
+    .status-dot.offline { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .status-dot.connecting { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+    .status-text { color: var(--muted); font-size: 0.75rem; }
+    .last-poll { color: var(--muted); font-size: 0.6rem; display: none; }
+
+    .theme-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── Nav ─── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 0.5rem;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      transition: background 0.2s;
+    }
+    nav::-webkit-scrollbar { display: none; }
+    nav a {
       color: var(--muted);
+      text-decoration: none;
+      padding: 0.65rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    nav a:hover { color: var(--text); }
+    nav a.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    nav a .nav-badge {
+      font-size: 0.55rem;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      margin-left: 0.3rem;
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+
+    /* ─── Main ─── */
+    main { max-width: 960px; margin: 1rem auto; padding: 0 0.75rem; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .info-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      transition: background 0.2s;
     }
     .info-bar a { color: var(--accent); text-decoration: none; }
     .info-bar a:hover { text-decoration: underline; }
+
     .bg-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      font-size: 0.7rem;
-      padding: 0.2rem 0.6rem;
+      gap: 0.3rem;
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
       border-radius: 4px;
-      background: #0a3a1a;
+      background: #d3f9d8;
       color: var(--green);
       font-weight: 600;
     }
+    [data-theme="dark"] .bg-badge { background: #0a3a1a; }
     .bg-badge .pulse {
-      width: 6px; height: 6px;
+      width: 5px; height: 5px;
       background: var(--green);
       border-radius: 50%;
       animation: pulse 1.5s infinite;
     }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .agent-card {
+
+    /* ─── Cards ─── */
+    .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      transition: border-color 0.2s;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .agent-card:hover { border-color: var(--accent); }
-    .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-    .agent-name { font-size: 1.25rem; font-weight: 600; }
-    .agent-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .agent-version { color: var(--muted); font-size: 0.8rem; background: var(--bg); padding: 0.15rem 0.5rem; border-radius: 4px; }
-    .agent-desc { color: var(--muted); margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .card:hover { border-color: var(--accent); }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.35rem; }
+    .card-title { font-size: 1.05rem; font-weight: 600; }
+    .card-version { color: var(--muted); font-size: 0.7rem; background: var(--bg); padding: 0.1rem 0.4rem; border-radius: 4px; }
+    .card-desc { color: var(--muted); margin-bottom: 0.6rem; font-size: 0.8rem; }
+
     .specs-row {
-      display: flex; gap: 1.5rem; flex-wrap: wrap;
-      margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--muted);
+      display: flex; gap: 0.5rem 1rem; flex-wrap: wrap;
+      margin-bottom: 0.6rem; font-size: 0.68rem; color: var(--muted);
     }
-    .specs-row .label { color: var(--accent); }
-    .specs-row code { background: var(--bg); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.7rem; }
-    .skills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .specs-row .label { color: var(--accent); font-weight: 600; }
+    .specs-row code { background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.65rem; }
+
+    .skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
     .skill-tag {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.3rem 0.75rem;
-      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
       color: var(--accent);
       cursor: pointer;
       transition: background 0.15s, box-shadow 0.15s;
+      user-select: none;
     }
     .skill-tag:hover {
       background: var(--accent-glow);
@@ -129,138 +225,425 @@
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 0.75rem 1rem;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
+      padding: 0.6rem 0.75rem;
+      margin-top: 0.4rem;
+      font-size: 0.72rem;
       color: var(--muted);
     }
     .skill-detail.open { display: block; }
-    .skill-detail h4 { color: var(--text); margin-bottom: 0.25rem; }
+    .skill-detail h4 { color: var(--text); margin-bottom: 0.2rem; font-size: 0.8rem; }
     .skill-detail pre {
-      background: #0d0d14;
-      padding: 0.5rem;
+      background: var(--surface);
+      padding: 0.4rem;
       border-radius: 4px;
       overflow-x: auto;
-      font-size: 0.72rem;
-      margin-top: 0.5rem;
+      font-size: 0.68rem;
+      margin-top: 0.4rem;
       white-space: pre-wrap;
     }
-    .endpoints { margin-top: 1rem; }
-    .endpoints summary { cursor: pointer; color: var(--muted); font-size: 0.8rem; }
+
+    .endpoints { margin-top: 0.75rem; }
+    .endpoints summary { cursor: pointer; color: var(--muted); font-size: 0.72rem; outline: none; }
     .endpoints summary:hover { color: var(--text); }
-    .endpoint { font-size: 0.75rem; padding: 0.25rem 0; }
-    .endpoint .method { color: var(--accent); font-weight: 600; margin-right: 0.5rem; min-width: 40px; display: inline-block; }
+    .endpoint { font-size: 0.68rem; padding: 0.2rem 0; display: flex; }
+    .endpoint .method { color: var(--accent); font-weight: 600; margin-right: 0.4rem; min-width: 35px; display: inline-block; }
     .endpoint .method.post { color: var(--orange); }
-    .endpoint .path { color: var(--muted); font-family: monospace; }
+    .endpoint .path { color: var(--muted); font-family: monospace; word-break: break-all; }
+
     .trigger-badge {
       display: inline-block;
-      font-size: 0.7rem;
-      padding: 0.15rem 0.5rem;
+      font-size: 0.62rem;
+      padding: 0.1rem 0.4rem;
       border-radius: 4px;
       background: var(--accent-glow);
       color: var(--accent);
-      margin-right: 0.4rem;
+      margin-right: 0.3rem;
+      margin-bottom: 0.25rem;
     }
-    .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-    .section h2 { margin-bottom: 1rem; font-size: 1rem; }
-    .flow-steps {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.75rem;
+
+    /* ─── Prose pages ─── */
+    .prose { color: var(--muted); font-size: 0.85rem; }
+    .prose h2 { color: var(--text); font-size: 1.05rem; margin: 1.25rem 0 0.6rem; }
+    .prose h3 { color: var(--text); font-size: 0.9rem; margin: 1rem 0 0.4rem; }
+    .prose p { margin-bottom: 0.6rem; }
+    .prose ul, .prose ol { margin-left: 1.25rem; margin-bottom: 0.6rem; }
+    .prose li { margin-bottom: 0.3rem; }
+    .prose code { background: var(--bg); padding: 0.08rem 0.3rem; border-radius: 3px; font-size: 0.78rem; color: var(--accent); }
+    .prose pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; overflow-x: auto; font-size: 0.72rem; margin-bottom: 0.75rem; }
+    .prose pre code { background: none; padding: 0; color: var(--text); }
+    .prose blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 0.75rem;
+      margin: 0.6rem 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* ─── Invoke form ─── */
+    .invoke-form {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .invoke-form label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; }
+    .invoke-form select, .invoke-form input, .invoke-form textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      color: var(--text);
+      font-size: 0.75rem;
+      font-family: monospace;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s;
+    }
+    .invoke-form button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+    }
+    .invoke-form button:hover { opacity: 0.9; }
+    .invoke-result {
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 0.6rem;
+      margin-top: 0.5rem;
+      font-size: 0.68rem;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 250px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    /* ─── Flow grid ─── */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.6rem;
     }
     .flow-step {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1rem;
-      font-size: 0.75rem;
+      padding: 0.75rem;
+      font-size: 0.7rem;
+      transition: background 0.2s;
     }
     .flow-step .step-num {
       color: var(--accent);
       font-weight: 700;
-      font-size: 0.9rem;
-      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+      margin-bottom: 0.2rem;
     }
-    .flow-step code { background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.7rem; color: var(--accent); }
-    .links-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem; }
-    .links-row a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .flow-step code { background: var(--bg); padding: 0.08rem 0.25rem; border-radius: 3px; font-size: 0.65rem; color: var(--accent); }
+
+    /* ─── Table ─── */
+    /* ─── Architecture tree ─── */
+    .tree { padding: 0; list-style: none; }
+    .tree-node { margin-left: 1rem; border-left: 1px dashed var(--border); padding-left: 1rem; position: relative; }
+    .tree-node::before { content: ""; position: absolute; left: 0; top: 0.65rem; width: 0.6rem; height: 1px; background: var(--border); }
+    .tree-label { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+    .tree-label.parent { background: var(--accent-glow); color: var(--accent); }
+    .tree-label.child { background: var(--bg); color: var(--blue); border: 1px solid var(--border); font-size: 0.72rem; }
+    .tree-label.standalone { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+    .tree-skills { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.3rem; margin-left: 0.5rem; }
+    .tree-skill { font-size: 0.58rem; padding: 0.1rem 0.35rem; border-radius: 3px; background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+    .tree-connector { font-size: 0.65rem; color: var(--muted); margin: 0.2rem 0; }
+    .arch-legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.7rem; color: var(--muted); }
+    .arch-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin: 0.75rem 0; display: block; overflow-x: auto; }
+    .compare-table th, .compare-table td {
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+    }
+    .compare-table th { background: var(--surface); color: var(--accent); font-weight: 600; white-space: nowrap; }
+    .compare-table td { color: var(--muted); }
+    .compare-table code { background: var(--bg); padding: 0.08rem 0.3rem; border-radius: 3px; font-size: 0.68rem; }
+
+    .highlight-box {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    .highlight-box h3 { color: var(--accent); margin-top: 0; font-size: 0.9rem; }
+
+    .links-row { display: flex; gap: 0.5rem 0.75rem; flex-wrap: wrap; font-size: 0.7rem; }
+    .links-row a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem; white-space: nowrap; }
     .links-row a:hover { text-decoration: underline; }
+
     footer {
       text-align: center;
-      padding: 2rem;
+      padding: 1.5rem 0.75rem;
       color: var(--muted);
-      font-size: 0.75rem;
+      font-size: 0.7rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      header { padding: 0.6rem 0.75rem; }
+      header h1 { font-size: 1rem; }
+      .header-right { gap: 0.4rem; }
+      .status-text { font-size: 0.68rem; }
+      .last-poll { display: inline; font-size: 0.55rem; }
+      nav a { padding: 0.55rem 0.55rem; font-size: 0.68rem; }
+      nav a .nav-badge { display: none; }
+      main { padding: 0 0.5rem; margin: 0.75rem auto; }
+      .card { padding: 0.75rem; border-radius: 8px; }
+      .card-title { font-size: 0.95rem; }
+      .specs-row { gap: 0.25rem 0.75rem; }
+      .specs-row span { margin-bottom: 0.25rem; }
+      .flow-grid { grid-template-columns: repeat(2, 1fr); }
+      .prose { font-size: 0.8rem; }
+      .prose pre { font-size: 0.65rem; padding: 0.5rem; }
+      .info-bar { font-size: 0.68rem; padding: 0.5rem 0.6rem; }
+    }
+
+    @media (max-width: 380px) {
+      .flow-grid { grid-template-columns: 1fr; }
+      .specs-row { gap: 0.2rem 0.5rem; }
+      .card-title { font-size: 0.85rem; }
+      .skill-tag { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1><span>◈</span> Agent Platform</h1>
-    <div class="status-row">
-      <span class="status-dot" id="conn-dot"></span>
-      <span class="status-text" id="conn-status">Connecting...</span>
-      <span class="last-poll" id="last-poll"></span>
+    <div class="header-right">
+      <div class="status-row">
+        <span class="status-dot" id="conn-dot"></span>
+        <span class="status-text" id="conn-status">Connecting...</span>
+        <span class="last-poll" id="last-poll"></span>
+      </div>
+      <button class="theme-btn" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle theme">☀</button>
     </div>
   </header>
+
+  <nav>
+    <a class="active" data-page="dashboard">Dashboard <span class="nav-badge">live</span></a>
+    <a data-page="sanity">Sanity Check</a>
+    <a data-page="budget">Budget</a>
+    <a data-page="animation">Animation</a>
+    <a data-page="architecture">Architecture</a>
+    <a data-page="what">What</a>
+    <a data-page="why">Why</a>
+    <a data-page="how">How</a>
+  </nav>
+
   <main>
-    <div class="info-bar">
-      <span>Source: <a id="api-link" href="#" target="_blank">Fly.io API</a></span>
-      <div class="links-row">
-        <a href="https://github.com/rifaterdemsahin/agent-platform" target="_blank">GitHub</a>
-        <a href="https://github.com/rifaterdemsahin/agent-platform/blob/main/README.md" target="_blank">README</a>
-        <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents" target="_blank">Agent Specs</a>
-        <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents" target="_blank">Agent Code</a>
+    <div id="page-dashboard" class="page active">
+      <div class="info-bar">
+        <span>API: <a id="api-link" href="#" target="_blank">Fly.io</a></span>
+        <div class="links-row">
+          <a href="https://github.com/rifaterdemsahin/agent-platform" target="_blank">GitHub</a>
+          <a href="https://agent-platform-9a3f.fly.dev" target="_blank">Fly.io</a>
+          <a href="https://rifaterdemsahin.github.io/agent-platform" target="_blank">Pages</a>
+        </div>
+      </div>
+      <div id="dashboard-content">Loading agents...</div>
+    </div>
+
+    <div id="page-sanity" class="page"></div>
+    <div id="page-budget" class="page"></div>
+    <div id="page-animation" class="page"></div>
+
+    <div id="page-architecture" class="page">
+      <div class="arch-legend">
+        <span><span class="tree-label parent" style="font-size:0.65rem;padding:0.15rem 0.4rem">parent</span> top-level agent</span>
+        <span><span class="tree-label child" style="font-size:0.65rem;padding:0.15rem 0.4rem">sub-agent</span> inherits from parent</span>
+        <span><span class="tree-label standalone" style="font-size:0.65rem;padding:0.15rem 0.4rem">standalone</span> independent agent</span>
+      </div>
+      <div id="architecture-content">Loading hierarchy...</div>
+    </div>
+
+    <div id="page-what" class="page">
+      <div class="prose">
+        <h2>What is the Agent Platform?</h2>
+        <p>A multi-agent runtime where each agent is a self-contained unit with its own <strong>spec</strong>, <strong>code</strong>, and <strong>skills</strong>. Agents run as background processes, exposed over a REST API, and powered by LLMs (Claude via Anthropic SDK).</p>
+
+        <h3>What agents exist</h3>
+        <div style="overflow-x:auto">
+        <table class="compare-table">
+          <tr><th>Agent</th><th>Role</th><th>Skills</th><th>Triggers</th></tr>
+          <tr><td><code>sanity-check</code></td><td>Code validation, lint, typecheck, config, deploy readiness</td><td>5</td><td>pre-commit, pre-deploy, scheduled, on-demand</td></tr>
+          <tr><td><code>budget</code></td><td>Cost estimation, usage tracking, budget alerts, optimization, forecasting</td><td>5</td><td>scheduled, on-demand, threshold-alert</td></tr>
+        </table>
+        </div>
+
+        <h3>What each agent contains</h3>
+        <pre><code>agents/&lt;name&gt;/
+  ├── agent.json          # SPEC: name, version, description, skills[], runtime, triggers[]
+  ├── index.js            # CODE: agent entrypoint — exports { agent, run() }
+  └── skills/             # SKILLS: standalone modules callable by name
+      └── skill-name.js</code></pre>
+
+        <h3>What the runtime does</h3>
+        <p><code>runtime/agent-loader.js</code> scans the <code>agents/</code> directory at startup, parses every <code>agent.json</code>, and imports each agent's code. The Express server exposes:</p>
+        <ul>
+          <li><code>GET /api/agents</code> — list all agents</li>
+          <li><code>GET /api/agents/:name</code> — get agent spec</li>
+          <li><code>GET /api/agents/:name/skills</code> — list skills</li>
+          <li><code>POST /api/agents/:name/invoke</code> — execute a skill</li>
+          <li><code>GET /api/skills</code> — all skills across all agents</li>
+        </ul>
+
+        <div class="highlight-box">
+          <h3>Agent = spec + code + skills in one folder</h3>
+          <p>No YAML config sprawl. No separate service per agent. One Express server loads every agent from the filesystem. Add a folder, push to GitHub, GitHub Actions deploys to Fly.io — the new agent is live.</p>
+        </div>
       </div>
     </div>
 
-    <div id="agents-container">Loading agents...</div>
+    <div id="page-why" class="page">
+      <div class="prose">
+        <h2>Why an agent platform?</h2>
 
-    <div class="section" id="api-all-skills"></div>
+        <h3>Problem</h3>
+        <p>Every project needs the same background checks — linting, type safety, env validation, cost tracking, deployment readiness. Building these from scratch per project wastes time and leads to inconsistency.</p>
 
-    <div class="section">
-      <h2>Agent Lifecycle &amp; Architecture</h2>
-      <div class="flow-steps">
-        <div class="flow-step">
-          <div class="step-num">1. Spec</div>
-          <div>Define your agent in <code>agents/&lt;name&gt;/agent.json</code> — name, version, description, skills, runtime, triggers.</div>
+        <h3>Why not separate services?</h3>
+        <ul>
+          <li>Fragmented — each service has its own deploy, config, auth, monitoring</li>
+          <li>Inconsistent — different APIs, different error shapes, different logging</li>
+          <li>Hard to discover — no central registry of what agents exist and what they can do</li>
+          <li>Duplicate LLM plumbing — every service reinvents the Anthropic integration</li>
+        </ul>
+
+        <h3>Why this approach</h3>
+        <div style="overflow-x:auto">
+        <table class="compare-table">
+          <tr><th>Concern</th><th>Separate Services</th><th>Agent Platform</th></tr>
+          <tr><td>Add an agent</td><td>New repo, new deploy, new CI, new auth</td><td>One folder, one push</td></tr>
+          <tr><td>Discoverability</td><td>Docs get stale</td><td><code>GET /api/agents</code> is always current</td></tr>
+          <tr><td>LLM access</td><td>Each service configures its own</td><td>Injected via <code>context.llm</code></td></tr>
+          <tr><td>Background execution</td><td>Cron per service</td><td>Declarative <code>pollingIntervalMs</code> in spec</td></tr>
+          <tr><td>Call from other projects</td><td>Discover URL, read docs</td><td><code>fetch("/api/agents/:name/invoke")</code></td></tr>
+          <tr><td>Skill reuse</td><td>Copy-paste between repos</td><td>Skills are modules in <code>skills/</code> dir</td></tr>
+        </table>
         </div>
-        <div class="flow-step">
-          <div class="step-num">2. Code</div>
-          <div>Implement skills in <code>agents/&lt;name&gt;/index.js</code>. Each skill is an async function that receives <code>(params, context)</code>.</div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">3. Runtime</div>
-          <div><code>runtime/agent-loader.js</code> scans <code>agents/</code> at startup. Agents are cached in memory and ready to invoke.</div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">4. API</div>
-          <div>Express serves <code>/api/agents/:name/invoke</code>. Agents receive the Anthropic LLM client via <code>context</code>.</div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">5. Background</div>
-          <div>Agents declare <code>"background": true</code> with <code>pollingIntervalMs</code>. External cron or scheduler pings invoke endpoints.</div>
-        </div>
-        <div class="flow-step">
-          <div class="step-num">6. Deploy</div>
-          <div>Push to <code>main</code> → GitHub Actions runs <code>flyctl deploy</code> → Fly.io publishes HTTPS.</div>
-        </div>
+
+        <blockquote>
+          The agent platform treats agents like npm packages — self-contained, versioned, discoverable, and invocable over HTTP. But instead of publishing to a registry, you push to a monorepo and the runtime picks them up.
+        </blockquote>
       </div>
     </div>
 
-    <div class="section">
-      <h2>Updating Agent Skills</h2>
-      <p style="color:var(--muted);font-size:0.85rem;">
-        Skills live in <code style="background:var(--bg);padding:0.1rem 0.4rem;border-radius:3px;">agents/&lt;name&gt;/skills/&lt;skill&gt;.js</code>.
-        Edit the skill file, add it to the agent's <code>skills</code> array in <code>agent.json</code>, push to GitHub, and Fly.io redeploys automatically.
-      </p>
+    <div id="page-how" class="page">
+      <div class="prose">
+        <h2>How to iterate on the Agent Platform</h2>
+
+        <h3>How to add a new agent</h3>
+        <ol>
+          <li>Create <code>agents/&lt;name&gt;/</code> folder</li>
+          <li>Create <code>agent.json</code> (name, version, description, skills[], runtime, triggers[])</li>
+          <li>Create <code>index.js</code> exporting <code>{ agent, run() }</code></li>
+          <li>Create skill modules in <code>skills/</code></li>
+          <li><code>git add agents/&lt;name&gt;/ && git commit && git push origin main</code></li>
+        </ol>
+        <p>GitHub Actions auto-deploys to Fly.io. The agent is live on the next API poll.</p>
+
+        <h3>How to update an agent's skills</h3>
+        <ol>
+          <li>Edit <code>agents/&lt;name&gt;/skills/&lt;skill&gt;.js</code></li>
+          <li>If adding a new skill, add to <code>skills[]</code> in <code>agent.json</code></li>
+          <li>Add the skill case in <code>run()</code> in <code>index.js</code></li>
+          <li>Push to GitHub — Fly.io redeploys automatically</li>
+        </ol>
+
+        <h3>How to call agents from other projects</h3>
+        <pre><code>// JavaScript
+const res = await fetch("https://agent-platform-9a3f.fly.dev/api/agents/sanity-check/invoke", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ skill: "deploy-readiness", params: { path: "." } })
+});
+
+// Python
+import requests
+r = requests.post(
+  "https://agent-platform-9a3f.fly.dev/api/agents/budget/invoke",
+  json={"skill":"estimate-cost","params":{"model":"claude-sonnet-4-20250514","inputTokens":5000,"outputTokens":2000,"provider":"anthropic"}}
+)</code></pre>
+
+        <h3>How deployment works</h3>
+        <div class="flow-grid">
+          <div class="flow-step"><div class="step-num">1. Push</div><div>To <code>main</code> on GitHub</div></div>
+          <div class="flow-step"><div class="step-num">2. CI</div><div>GitHub Actions triggers <code>deploy.yml</code> + <code>pages.yml</code></div></div>
+          <div class="flow-step"><div class="step-num">3. Build</div><div><code>flyctl deploy</code> builds Docker image</div></div>
+          <div class="flow-step"><div class="step-num">4. Ship</div><div>Fly.io rolls out new machines (zero-downtime, 2 instances)</div></div>
+          <div class="flow-step"><div class="step-num">5. Verify</div><div>Health check hits <code>/api/agents</code> every 30s</div></div>
+          <div class="flow-step"><div class="step-num">6. Pages</div><div>GitHub Pages deploys static dashboard from <code>public/</code></div></div>
+        </div>
+
+        <h3>How to run locally</h3>
+        <pre><code>cp .env.example .env    # add your ANTHROPIC_API_KEY
+npm install
+npm run dev              # http://localhost:8080</code></pre>
+
+        <h3>How to set secrets</h3>
+        <pre><code>flyctl secrets set ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+      </div>
     </div>
   </main>
-  <footer>Agent Platform &middot; LLM-powered background agents &middot; Fly.io + GitHub Pages</footer>
+  <footer>Agent Platform &middot; LLM-powered background agents &middot; <a href="https://agent-platform-9a3f.fly.dev">Fly.io</a> + <a href="https://rifaterdemsahin.github.io/agent-platform">GitHub Pages</a></footer>
 
   <script>
     const API = "https://agent-platform-9a3f.fly.dev/api";
-
     let pollTimer;
+    let agentCache = [];
+    let hierarchyCache = [];
 
+    /* ─── Theme toggle ─── */
+    (function initTheme() {
+      const html = document.documentElement;
+      const toggle = document.getElementById("theme-toggle");
+      const saved = localStorage.getItem("agent-platform-theme") || "dark";
+      html.setAttribute("data-theme", saved);
+      toggle.textContent = saved === "dark" ? "☀" : "☾";
+      toggle.addEventListener("click", () => {
+        const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", next);
+        toggle.textContent = next === "dark" ? "☀" : "☾";
+        localStorage.setItem("agent-platform-theme", next);
+      });
+    })();
+
+    /* ─── Navigation ─── */
+    document.querySelectorAll("nav a").forEach(link => {
+      link.addEventListener("click", () => {
+        document.querySelectorAll("nav a").forEach(l => l.classList.remove("active"));
+        link.classList.add("active");
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        const pageId = "page-" + link.dataset.page;
+        document.getElementById(pageId).classList.add("active");
+        const p = link.dataset.page;
+        if (p === "sanity") renderAgentPage("sanity-check");
+        else if (p === "budget") renderAgentPage("budget");
+        else if (p === "animation") renderAgentPage("animation");
+        else if (p === "architecture") renderArchitecture();
+        link.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      });
+    });
+
+    /* ─── Connection polling ─── */
     async function fetchAgents() {
       const dot = document.getElementById("conn-dot");
       const status = document.getElementById("conn-status");
@@ -268,100 +651,234 @@
       status.textContent = "Connecting...";
 
       try {
-        const res = await fetch(`${API}/agents`);
-        const data = await res.json();
+        const [agentsRes, hierarchyRes] = await Promise.all([
+          fetch(`${API}/agents`),
+          fetch(`${API}/agents/hierarchy`),
+        ]);
+        const agentsData = await agentsRes.json();
+        agentCache = agentsData.agents;
+        const hierarchyData = await hierarchyRes.json();
+        hierarchyCache = hierarchyData.hierarchy;
+
         dot.className = "status-dot";
-        status.textContent = `${data.agents.length} agents operational`;
-        renderAgents(data.agents);
-        renderAllSkills(data.agents);
+        status.textContent = `${agentCache.length} agents online`;
+        renderDashboard(agentCache, hierarchyCache);
+        document.getElementById("api-link").href = API + "/agents";
       } catch (err) {
         dot.className = "status-dot offline";
-        status.textContent = "API unreachable";
-        document.getElementById("agents-container").innerHTML =
-          `<div class="agent-card"><p style="color:var(--orange)">Cannot reach Fly.io API. Server may be restarting.</p></div>`;
+        status.textContent = "Offline";
+        document.getElementById("dashboard-content").innerHTML =
+          `<div class="card"><p style="color:var(--orange)">Cannot reach Fly.io API at ${API}.</p></div>`;
       }
-
       document.getElementById("last-poll").textContent =
-        "Last poll: " + new Date().toLocaleTimeString();
-      document.getElementById("api-link").href = API + "/agents";
-      document.getElementById("api-link").textContent = API + "/agents";
-
+        "Poll: " + new Date().toLocaleTimeString();
       pollTimer = setTimeout(fetchAgents, 15000);
     }
 
-    function renderAgents(agents) {
-      document.getElementById("agents-container").innerHTML = agents.map(a => `
-        <div class="agent-card" id="agent-${a.name}">
-          <div class="agent-header">
-            <div class="agent-name">${a.name} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "background" : "on-demand"}</span></div>
-            <div class="agent-meta">
-              <div class="agent-version">v${a.version}</div>
-            </div>
+    /* ─── Dashboard ─── */
+    function renderDashboard(agents, hierarchy) {
+      const topLevel = (hierarchy || []).map(hl => hl.name);
+      document.getElementById("dashboard-content").innerHTML = agents.map(a => {
+        const isTop = topLevel.some(tl => a.name === tl || a.name.startsWith(tl + "/"));
+        const depth = a.name.split("/").length;
+        const isSub = a.name.includes("/");
+        let subBlock = "";
+        if (!isSub) {
+          const hl = (hierarchy || []).find(h => h.name === a.name);
+          if (hl && hl.subAgents && hl.subAgents.length) {
+            subBlock = `<div style="margin-bottom:0.5rem;font-size:0.7rem;color:var(--muted)">Sub-agents: ${hl.subAgents.map(sa => `<code style="background:var(--bg);padding:0.1rem 0.35rem;border-radius:3px;margin:0 0.15rem">${sa.name}</code>`).join("")}</div>`;
+          }
+        }
+        let parentBadge = "";
+        if (isSub) {
+          const parent = a.parent || a.inheritsFrom || a.name.split("/")[0];
+          parentBadge = `<span style="font-size:0.65rem;color:var(--blue);margin-left:0.3rem">← ${parent}</span>`;
+        }
+        return `
+        <div class="card" style="${isSub ? 'margin-left:1.5rem;border-left:2px solid var(--blue);' : ''}">
+          <div class="card-header">
+            <div class="card-title">${a.name}${parentBadge} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "bg" : "demand"}</span></div>
+            <div class="card-version">v${a.version}</div>
           </div>
-          <div class="agent-desc">${a.description || ""}</div>
+          <div class="card-desc">${a.description || ""}</div>
+          ${subBlock}
           <div class="specs-row">
             <span><span class="label">Spec:</span> <code>agents/${a.name}/agent.json</code></span>
-            <span><span class="label">Code:</span> <code>agents/${a.name}/index.js</code></span>
-            <span><span class="label">Skills dir:</span> <code>agents/${a.name}/skills/</code></span>
             <span><span class="label">LLM:</span> ${a.runtime?.llm || "—"}</span>
-            <span><span class="label">Poll:</span> ${a.runtime?.pollingIntervalMs ? (a.runtime.pollingIntervalMs / 1000) + "s" : "—"}</span>
           </div>
-          <div style="margin-bottom:0.5rem">${(a.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
-          <div class="skills">${(a.skills || []).map(s => `
+          <div>${(a.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
+          <div class="skills" style="margin-top:0.5rem">${(a.skills || []).map(s => `
             <span class="skill-tag" onclick="toggleSkill('${a.name}', '${s.name}')" title="${s.description}">${s.name}</span>
           `).join("")}</div>
           <div id="skill-detail-${a.name}"></div>
           <details class="endpoints">
-            <summary>API Endpoints</summary>
-            <div class="endpoint"><span class="method">GET</span><span class="path">${a.api?.invokeUrl?.replace('/invoke','') || "/api/agents/" + a.name}</span></div>
-            <div class="endpoint"><span class="method">GET</span><span class="path">${a.api?.skillsUrl || "/api/agents/" + a.name + "/skills"}</span></div>
-            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/${a.name}/code</span></div>
-            <div class="endpoint"><span class="method post">POST</span><span class="path">${a.api?.invokeUrl || "/api/agents/" + a.name + "/invoke"}</span></div>
+            <summary>API</summary>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${a.name}</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${a.name}/skills</span></div>
+            <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${a.name}/invoke</span></div>
           </details>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
 
+    /* ─── Architecture page ─── */
+    function renderArchitecture() {
+      if (!hierarchyCache.length) {
+        document.getElementById("architecture-content").innerHTML =
+          `<div class="card"><p style="color:var(--orange)">No hierarchy data yet.</p></div>`;
+        return;
+      }
+      document.getElementById("architecture-content").innerHTML = hierarchyCache.map(hl => {
+        const isParent = hl.subAgents && hl.subAgents.length;
+        let treeClass = isParent ? "parent" : "standalone";
+        return `
+        <div class="card">
+          <div class="tree">
+            <div class="tree-label ${treeClass}">${hl.name} <span style="font-size:0.6rem;font-weight:400">v${hl.version}</span></div>
+            <div class="tree-connector">${hl.description ? hl.description.substring(0, 80) + "…" : ""}</div>
+            <div class="tree-skills">${(hl.skills || []).map(s => `<span class="tree-skill">${s.name}</span>`).join("")}</div>
+            ${isParent ? hl.subAgents.map(sa => `
+            <div class="tree-node">
+              <div class="tree-label child">${sa.name} <span style="font-size:0.55rem;font-weight:400">← ${hl.name}</span></div>
+              <div class="tree-connector">${sa.description}</div>
+              <div class="tree-skills">${(sa.skills || []).map(s => `<span class="tree-skill">${s.name}</span>`).join("")}</div>
+            </div>
+            `).join("") : ""}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    /* ─── Agent detail page ─── */
+    function renderAgentPage(agentName) {
+      const agent = agentCache.find(a => a.name === agentName);
+      const pageMap = { "sanity-check": "sanity", "budget": "budget", "animation": "animation" };
+      const pageKey = pageMap[agentName] || agentName;
+      const pageEl = document.getElementById("page-" + pageKey);
+      if (!agent) {
+        pageEl.innerHTML = `<div class="card"><p style="color:var(--orange)">Agent "${agentName}" not found.</p></div>`;
+        return;
+      }
+      const hl = hierarchyCache.find(h => h.name === agentName);
+      let subBlock = "";
+      if (hl && hl.subAgents && hl.subAgents.length) {
+        subBlock = `<div style="margin-bottom:0.5rem;font-size:0.8rem;color:var(--muted)"><span class="label">Sub-agents:</span> ${hl.subAgents.map(sa => `<code style="background:var(--bg);padding:0.15rem 0.4rem;border-radius:4px;margin:0 0.2rem;color:var(--blue)">${sa.name}</code>`).join("")}</div>`;
+        const subAgents = agentCache.filter(a => a.name.startsWith(agentName + "/"));
+        if (subAgents.length) {
+          subBlock += subAgents.map(sa => `
+            <div class="card" style="margin-left:1.5rem;border-left:2px solid var(--blue);padding:0.75rem;">
+              <div class="card-header">
+                <div class="card-title" style="font-size:0.9rem">${sa.name} <span style="font-size:0.6rem;color:var(--blue)">← ${agentName}</span></div>
+                <div class="card-version">v${sa.version}</div>
+              </div>
+              <div class="card-desc">${sa.description || ""}</div>
+              <div class="skills">${(sa.skills || []).map(s => `
+                <span class="skill-tag" onclick="toggleSkill('${sa.name}', '${s.name}')" title="${s.description}">${s.name}</span>
+              `).join("")}</div>
+              <div id="skill-detail-${sa.name}"></div>
+            </div>
+          `).join("");
+        }
+      }
+      pageEl.innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">${agent.name} <span class="bg-badge"><span class="pulse"></span>${agent.runtime?.background ? "bg" : "demand"}</span></div>
+            <div class="card-version">v${agent.version}</div>
+          </div>
+          <div class="card-desc">${agent.description || ""}</div>
+          ${subBlock}
+          <div class="specs-row">
+            <span><span class="label">Spec:</span> <code>agents/${agent.name}/agent.json</code></span>
+            <span><span class="label">LLM:</span> ${agent.runtime?.llm || "—"}</span>
+            <span><span class="label">Poll:</span> ${agent.runtime?.pollingIntervalMs ? (agent.runtime.pollingIntervalMs / 1000) + "s" : "—"}</span>
+          </div>
+          <div>${(agent.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
+
+          <h3 style="font-size:0.82rem;margin:0.75rem 0 0.4rem;color:var(--muted)">Skills</h3>
+          <div class="skills">${(agent.skills || []).map(s => `
+            <span class="skill-tag" onclick="toggleSkill('${agent.name}', '${s.name}')" title="${s.description}">${s.name}</span>
+          `).join("")}</div>
+          <div id="skill-detail-${agent.name}"></div>
+
+          <details class="endpoints">
+            <summary>API Endpoints</summary>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}/skills</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}/code</span></div>
+            <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${agent.name}/invoke</span></div>
+          </details>
+
+          <div class="invoke-form">
+            <h3 style="font-size:0.8rem;margin-bottom:0.4rem">Invoke a Skill</h3>
+            <label>Skill</label>
+            <select id="invoke-skill-${agent.name}">
+              ${(agent.skills || []).map(s => `<option value="${s.name}">${s.name}</option>`).join("")}
+            </select>
+            <label>Params (JSON)</label>
+            <textarea id="invoke-params-${agent.name}" rows="3" placeholder='{"path": "."}'>{"path": "."}</textarea>
+            <button onclick="invokeAgent('${agent.name}')">Send Invoke</button>
+            <pre class="invoke-result" id="invoke-result-${agent.name}"></pre>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ─── Skill toggle (uses tree API) ─── */
     async function toggleSkill(agentName, skillName) {
       const detailEl = document.getElementById("skill-detail-" + agentName);
+      if (!detailEl) return;
       if (detailEl.dataset.active === skillName) {
         detailEl.innerHTML = "";
         delete detailEl.dataset.active;
         return;
       }
       try {
-        const [skillRes, codeRes] = await Promise.all([
-          fetch(`${API}/agents/${agentName}/skills/${skillName}`),
-          fetch(`${API}/agents/${agentName}/skills`)
+        const [skillRes, skillsRes] = await Promise.all([
+          fetch(`${API}/agents/tree/${agentName}/skills/${skillName}`),
+          fetch(`${API}/agents/tree/${agentName}/skills`)
         ]);
         const skillData = await skillRes.json();
-        const fullSkills = await codeRes.json();
+        const fullSkills = await skillsRes.json();
         const skillMeta = (fullSkills.skills || []).find(s => s.name === skillName);
 
         detailEl.innerHTML = `
           <div class="skill-detail open">
             <h4>${skillName}</h4>
             <p>${skillMeta?.description || ""}</p>
-            <p style="margin-top:0.4rem;">Code path: <code>${skillData.codePath || "—"}</code></p>
-            <p style="margin-top:0.2rem;">Skill repo path: <code>agents/${agentName}/skills/${skillName}.js</code></p>
+            <p style="margin-top:0.3rem;">Code: <code>agents/${agentName}/skills/${skillName}.js</code></p>
             ${skillMeta?.parameters ? `<pre>Parameters:\n${JSON.stringify(skillMeta.parameters, null, 2)}</pre>` : ""}
           </div>`;
         detailEl.dataset.active = skillName;
       } catch {
-        detailEl.innerHTML = `<div class="skill-detail open"><p style="color:var(--orange)">Failed to load skill details.</p></div>`;
+        detailEl.innerHTML = `<div class="skill-detail open"><p style="color:var(--orange)">Failed to load skill.</p></div>`;
       }
     }
 
-    function renderAllSkills(agents) {
-      const all = agents.flatMap(a => (a.skills || []).map(s => ({ ...s, agent: a.name })));
-      document.getElementById("api-all-skills").innerHTML = `
-        <h2>All Skills (${all.length})</h2>
-        <div class="skills">
-          ${all.map(s => `<span class="skill-tag" title="${s.description}">${s.agent}/${s.name}</span>`).join("")}
-        </div>
-      `;
+    /* ─── Invoke (uses tree API) ─── */
+    async function invokeAgent(agentName) {
+      const skill = document.getElementById("invoke-skill-" + agentName).value;
+      const paramsRaw = document.getElementById("invoke-params-" + agentName).value;
+      const resultEl = document.getElementById("invoke-result-" + agentName);
+      resultEl.style.display = "block";
+      resultEl.textContent = "Invoking...";
+
+      try {
+        const params = JSON.parse(paramsRaw);
+        const res = await fetch(`${API}/agents/tree/${agentName}/invoke`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ skill, params })
+        });
+        const data = await res.json();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultEl.textContent = "Error: " + err.message;
+      }
     }
 
+    /* ─── Init ─── */
     fetchAgents();
   </script>
 </body>

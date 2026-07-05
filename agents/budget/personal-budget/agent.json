@@ -1,0 +1,56 @@
+{
+  "name": "personal-budget",
+  "version": "1.0.0",
+  "description": "Personal finance tracking sub-agent — log expenses, set savings goals, generate monthly reports, and categorize spending. Inherits budget thresholds from parent budget agent.",
+  "parent": "budget",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": true,
+    "pollingIntervalMs": 300000
+  },
+  "skills": [
+    {
+      "name": "track-expense",
+      "description": "Log a personal expense with category, amount, and date",
+      "parameters": {
+        "category": "string — 'food' | 'transport' | 'housing' | 'entertainment' | 'utilities' | 'other'",
+        "amount": "number — expense amount",
+        "description": "string — what was purchased",
+        "date": "string — ISO date, defaults to today"
+      }
+    },
+    {
+      "name": "set-savings-goal",
+      "description": "Set a personal savings goal with target amount and deadline",
+      "parameters": {
+        "goalName": "string",
+        "targetAmount": "number",
+        "deadline": "string — ISO date",
+        "monthlyContribution": "number"
+      }
+    },
+    {
+      "name": "monthly-report",
+      "description": "Generate a monthly spending report with category breakdown",
+      "parameters": {
+        "month": "number — 1-12",
+        "year": "number"
+      }
+    },
+    {
+      "name": "categorize-spending",
+      "description": "Use LLM to auto-categorize uncategorized expenses",
+      "parameters": {
+        "expenseDescription": "string"
+      }
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["scheduled", "on-demand"],
+  "inheritsFrom": "budget",
+  "api": {
+    "invokeUrl": "/api/agents/budget/personal-budget/invoke",
+    "skillsUrl": "/api/agents/budget/personal-budget/skills"
+  }
+}

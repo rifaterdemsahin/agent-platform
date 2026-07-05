@@ -1,0 +1,45 @@
+{
+  "name": "lottie",
+  "version": "1.0.0",
+  "description": "Lottie animation sub-agent — generates, optimizes, and renders Lottie/Bodymovin JSON animations. Inherits from animation parent.",
+  "parent": "animation",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": false
+  },
+  "skills": [
+    {
+      "name": "generate-lottie",
+      "description": "Generates a Lottie animation JSON spec from a text description",
+      "parameters": {
+        "description": "string — what the animation should depict",
+        "size": "string — 'small' | 'medium' | 'large' in pixels",
+        "loop": "boolean"
+      }
+    },
+    {
+      "name": "optimize-lottie",
+      "description": "Optimizes a Lottie JSON file — removes unused layers, minifies, reduces keyframes",
+      "parameters": {
+        "jsonSize": "string — 'small' | 'medium' | 'large'",
+        "targetSizeKB": "number"
+      }
+    },
+    {
+      "name": "lottie-react-guide",
+      "description": "Generates React code to embed a Lottie animation using lottie-react or lottie-web",
+      "parameters": {
+        "animationName": "string",
+        "platform": "string — 'web' | 'react' | 'react-native'"
+      }
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["on-demand"],
+  "inheritsFrom": "animation",
+  "api": {
+    "invokeUrl": "/api/agents/animation/lottie/invoke",
+    "skillsUrl": "/api/agents/animation/lottie/skills"
+  }
+}

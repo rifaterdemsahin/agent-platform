@@ -1,0 +1,48 @@
+{
+  "name": "animation",
+  "version": "1.0.0",
+  "description": "Parent animation agent — generates and manages animations. Delegates motion/Framer/GSAP work to motion sub-agent and Lottie animation work to lottie sub-agent.",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": true,
+    "pollingIntervalMs": 120000
+  },
+  "skills": [
+    {
+      "name": "generate-storyboard",
+      "description": "Generates an animation storyboard from a text description",
+      "parameters": {
+        "description": "string — what the animation should convey",
+        "style": "string — 'minimal' | 'playful' | 'corporate' | 'hand-drawn'"
+      }
+    },
+    {
+      "name": "select-library",
+      "description": "Recommends best animation library (Framer Motion, GSAP, Lottie, CSS) for a given use case",
+      "parameters": {
+        "targetPlatform": "string — 'web' | 'react' | 'react-native' | 'ios' | 'android'",
+        "complexity": "string — 'simple' | 'moderate' | 'complex'",
+        "performanceBudget": "string — 'low' | 'medium' | 'high'"
+      }
+    }
+  ],
+  "subAgents": [
+    {
+      "name": "motion",
+      "path": "motion",
+      "description": "Code-driven animation — Framer Motion, GSAP, CSS animations, keyframes, transitions"
+    },
+    {
+      "name": "lottie",
+      "path": "lottie",
+      "description": "Lottie/Bodymovin animations — export from After Effects, optimize JSON, render in web/mobile"
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["on-demand"],
+  "api": {
+    "invokeUrl": "/api/agents/animation/invoke",
+    "skillsUrl": "/api/agents/animation/skills"
+  }
+}

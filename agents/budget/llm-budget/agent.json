@@ -1,0 +1,54 @@
+{
+  "name": "llm-budget",
+  "version": "1.0.0",
+  "description": "LLM cost tracking sub-agent — estimates costs per model/provider, tracks cumulative usage, optimizes spend patterns, and forecasts future costs. Inherits budget thresholds from parent budget agent.",
+  "parent": "budget",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": true,
+    "pollingIntervalMs": 60000
+  },
+  "skills": [
+    {
+      "name": "estimate-cost",
+      "description": "Estimates the cost of an LLM call based on model, token count, and provider pricing",
+      "parameters": {
+        "model": "string — model identifier",
+        "inputTokens": "number",
+        "outputTokens": "number",
+        "provider": "string — 'anthropic' | 'openai' | 'google'"
+      }
+    },
+    {
+      "name": "track-usage",
+      "description": "Tracks cumulative token usage and cost for a project or agent over time",
+      "parameters": {
+        "projectId": "string",
+        "period": "string — 'daily' | 'weekly' | 'monthly' | 'total'"
+      }
+    },
+    {
+      "name": "optimize-costs",
+      "description": "Analyzes usage patterns and suggests cost optimizations (model changes, prompt shortening, caching)",
+      "parameters": {
+        "projectId": "string"
+      }
+    },
+    {
+      "name": "forecast",
+      "description": "Projects future costs based on historical usage trends",
+      "parameters": {
+        "projectId": "string",
+        "daysAhead": "number"
+      }
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["scheduled", "on-demand", "threshold-alert"],
+  "inheritsFrom": "budget",
+  "api": {
+    "invokeUrl": "/api/agents/budget/llm-budget/invoke",
+    "skillsUrl": "/api/agents/budget/llm-budget/skills"
+  }
+}

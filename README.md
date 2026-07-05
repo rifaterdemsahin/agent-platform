@@ -3,8 +3,11 @@
 **LLM-powered background agents with discoverable skills, code, and specs — deployed on Fly.io.**
 
 | **GitHub** | [github.com/rifaterdemsahin/agent-platform](https://github.com/rifaterdemsahin/agent-platform) |
-| **Fly.io** | [agent-platform-9a3f.fly.dev](https://agent-platform-9a3f.fly.dev) |
-| **GitHub Pages** | [rifaterdemsahin.github.io/agent-platform](https://rifaterdemsahin.github.io/agent-platform) |
+
+### Live
+
+[**agent-platform-9a3f.fly.dev**](https://agent-platform-9a3f.fly.dev) — full API + dashboard on Fly.io  
+[**rifaterdemsahin.github.io/agent-platform**](https://rifaterdemsahin.github.io/agent-platform) — static dashboard on GitHub Pages
 
 ---
 
