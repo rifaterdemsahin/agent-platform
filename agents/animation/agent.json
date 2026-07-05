@@ -1,48 +1,19 @@
 {
   "name": "animation",
   "version": "1.0.0",
-  "description": "Parent animation agent — generates and manages animations. Delegates Remotion video rendering to remotion sub-agent and Lottie animation work to lottie sub-agent.",
-  "runtime": {
-    "type": "node",
-    "llm": "claude-sonnet-4-20250514",
-    "background": true,
-    "pollingIntervalMs": 120000
-  },
+  "description": "Generates storyboards, selects animation libraries, and coordinates video rendering sub-agents.",
+  "runtime": { "type": "node", "llm": "claude-sonnet-4-20250514", "background": true, "pollingIntervalMs": 60000 },
   "skills": [
-    {
-      "name": "generate-storyboard",
-      "description": "Generates an animation storyboard from a text description",
-      "parameters": {
-        "description": "string — what the animation should convey",
-        "style": "string — 'minimal' | 'playful' | 'corporate' | 'hand-drawn'"
-      }
-    },
-    {
-      "name": "select-library",
-      "description": "Recommends best animation library (Framer Motion, GSAP, Lottie, CSS) for a given use case",
-      "parameters": {
-        "targetPlatform": "string — 'web' | 'react' | 'react-native' | 'ios' | 'android'",
-        "complexity": "string — 'simple' | 'moderate' | 'complex'",
-        "performanceBudget": "string — 'low' | 'medium' | 'high'"
-      }
-    }
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
+    { "name": "generate-storyboard", "description": "Generate a 4-panel animation storyboard from a description", "parameters": { "description": "string", "style": "string" } },
+    { "name": "select-library", "description": "Recommend the best animation library for a target platform", "parameters": { "targetPlatform": "string", "complexity": "string", "performanceBudget": "string" } }
   ],
   "subAgents": [
-    {
-      "name": "remotion",
-      "path": "remotion",
-      "description": "Programmatic React video rendering — compositions, sequences, transitions, overlays, audio sync, Lambda deployment"
-    },
-    {
-      "name": "lottie",
-      "path": "lottie",
-      "description": "Lottie/Bodymovin animations — export from After Effects, optimize JSON, render in web/mobile"
-    }
+    { "name": "remotion", "path": "remotion", "description": "React-based video rendering with Remotion: compositions, sequences, audio, transitions, overlays, Lambda deploy" },
+    { "name": "lottie", "path": "lottie", "description": "Lottie/Bodymovin vector animation generation, optimization, and React integration" }
   ],
   "entrypoint": "index.js",
   "triggers": ["on-demand"],
-  "api": {
-    "invokeUrl": "/api/agents/animation/invoke",
-    "skillsUrl": "/api/agents/animation/skills"
-  }
+  "api": { "invokeUrl": "/api/agents/animation/invoke", "skillsUrl": "/api/agents/animation/skills" }
 }

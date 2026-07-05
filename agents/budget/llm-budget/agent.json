@@ -10,6 +10,8 @@
     "pollingIntervalMs": 60000
   },
   "skills": [
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
     {
       "name": "estimate-cost",
       "description": "Estimates the cost of an LLM call based on model, token count, and provider pricing",

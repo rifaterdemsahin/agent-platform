@@ -9,6 +9,8 @@
     "background": false
   },
   "skills": [
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
     {
       "name": "render-video",
       "description": "Generates a Remotion composition and renders it as MP4/WebM/GIF via npx remotion render",

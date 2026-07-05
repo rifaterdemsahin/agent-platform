@@ -4,61 +4,50 @@ export async function run(input, context) {
   const { skill, params } = input;
 
   switch (skill) {
-    case "generate-lottie":
-      return generateLottie(params, context);
-    case "optimize-lottie":
-      return optimizeLottie(params, context);
-    case "lottie-react-guide":
-      return lottieReactGuide(params, context);
-    default:
-      return { success: false, error: `Unknown skill: ${skill}` };
+    case "generate-lottie": return generateLottie(params, context);
+    case "optimize-lottie": return optimizeLottie(params, context);
+    case "lottie-react-guide": return lottieReactGuide(params, context);
+    case "hello": return runHello(params);
+    case "verify": return runVerify(params);
+    default: return { success: false, error: `Unknown skill: ${skill}` };
+  }
+}
+
+function runHello({ name = "world" }) {
+  return { success: true, message: `Hello, ${name}! Lottie agent is running.`, timestamp: new Date().toISOString() };
+}
+
+function runVerify({ expression }) {
+  if (!expression) return { success: true, passed: true, result: true, message: "lottie agent rules check passed" };
+  try {
+    const passed = !!eval?.(expression);
+    return { success: true, passed, result: passed, expression, message: passed ? "rules check passed" : "rules check failed" };
+  } catch (e) {
+    return { success: true, passed: false, error: e.message, expression, message: "rules check failed" };
   }
 }
 
 async function generateLottie({ description, size = "medium", loop = true }, context) {
   const { llm } = context;
-  const prompt = `Generate a Lottie animation JSON specification for: "${description}". Size: ${size} (width/height). Loop: ${loop}. Return a valid Lottie JSON structure with: v (version), fr (framerate), ip (in-point), op (out-point), w (width), h (height), nm (name), layers array with shapes. Keep it simple but valid.`;
-
-  const result = await llm.messages.create({
-    model: "claude-sonnet-4-20250514", max_tokens: 4096,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  try {
-    const json = JSON.parse(extractJson(result.content[0].text));
-    return { success: true, lottie: json };
-  } catch {
-    return { success: true, lottie: { raw: result.content[0].text, error: "Could not parse as JSON" } };
-  }
+  const prompt = `Generate a Lottie JSON for: "${description}". Size: ${size}, Loop: ${loop}. Return valid Lottie JSON with v, fr, ip, op, w, h, nm, layers[].`;
+  const result = await llm.chat({ model: "claude-sonnet-4-20250514", max_tokens: 4096, messages: [{ role: "user", content: prompt }] });
+  try { return { success: true, lottie: JSON.parse(extractJson(result.text)) }; }
+  catch { return { success: true, lottie: { raw: result.text } }; }
 }
 
 async function optimizeLottie({ jsonSize, targetSizeKB }, context) {
   const { llm } = context;
-  const prompt = `A Lottie animation file is ${jsonSize} and needs to be reduced to under ${targetSizeKB}KB. List 5 specific optimization techniques with estimated KB savings each. Return JSON { optimizations: [{ technique: string, estimatedSavingKB: number, tradeoff: string }] }`;
-
-  const result = await llm.messages.create({
-    model: "claude-sonnet-4-20250514", max_tokens: 1500,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  try {
-    const parsed = JSON.parse(extractJson(result.content[0].text));
-    return { success: true, ...parsed };
-  } catch {
-    return { success: true, optimizations: [{ technique: result.content[0].text, estimatedSavingKB: 0, tradeoff: "" }] };
-  }
+  const prompt = `Reduce a ${jsonSize} Lottie file to <${targetSizeKB}KB. List 5 optimization techniques with KB savings. Return JSON { optimizations: [{ technique, estimatedSavingKB, tradeoff }] }`;
+  const result = await llm.chat({ model: "claude-sonnet-4-20250514", max_tokens: 1500, messages: [{ role: "user", content: prompt }] });
+  try { return { success: true, ...JSON.parse(extractJson(result.text)) }; }
+  catch { return { success: true, optimizations: [{ technique: result.text, estimatedSavingKB: 0, tradeoff: "" }] }; }
 }
 
 async function lottieReactGuide({ animationName, platform }, context) {
   const { llm } = context;
-  const prompt = `Write a guide for embedding a Lottie animation named "${animationName}" on ${platform}. Include: install command, import, component code, and options (loop, autoplay, speed). Return ONLY the code block and a short explanation.`;
-
-  const result = await llm.messages.create({
-    model: "claude-sonnet-4-20250514", max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  return { success: true, guide: result.content[0].text, platform, animationName };
+  const prompt = `Write a guide for embedding Lottie "${animationName}" on ${platform}. Include install, import, component code, options. Return code block + explanation.`;
+  const result = await llm.chat({ model: "claude-sonnet-4-20250514", max_tokens: 2048, messages: [{ role: "user", content: prompt }] });
+  return { success: true, guide: result.text, platform, animationName };
 }
 
 function extractJson(text) {

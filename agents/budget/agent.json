@@ -1,50 +1,19 @@
 {
   "name": "budget",
   "version": "1.0.0",
-  "description": "Parent budget agent — manages budget thresholds, alerts, and delegates LLM cost tracking to llm-budget sub-agent and personal finance to personal-budget sub-agent.",
-  "runtime": {
-    "type": "node",
-    "llm": "claude-sonnet-4-20250514",
-    "background": true,
-    "pollingIntervalMs": 60000
-  },
+  "description": "Tracks LLM usage costs, enforces budget limits, and provides cost optimization recommendations.",
+  "runtime": { "type": "node", "llm": "claude-sonnet-4-20250514", "background": true, "pollingIntervalMs": 60000 },
   "skills": [
-    {
-      "name": "set-budget",
-      "description": "Sets a budget threshold and returns alert configuration",
-      "parameters": {
-        "projectId": "string",
-        "limit": "number — maximum cost in USD",
-        "period": "string — 'daily' | 'weekly' | 'monthly'",
-        "alertThreshold": "number — percentage of limit that triggers alert"
-      }
-    },
-    {
-      "name": "get-status",
-      "description": "Returns overall budget status across all sub-agents (LLM + personal)",
-      "parameters": {
-        "projectId": "string"
-      }
-    }
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
+    { "name": "set-budget", "description": "Set a budget limit for a project", "parameters": { "projectId": "string", "limit": "number", "period": "string", "alertThreshold": "number" } },
+    { "name": "get-status", "description": "Get budget status for a project", "parameters": { "projectId": "string" } }
   ],
   "subAgents": [
-    {
-      "name": "llm-budget",
-      "path": "llm-budget",
-      "description": "LLM cost tracking — estimates, tracks usage, optimizes spend, forecasts costs"
-    },
-    {
-      "name": "personal-budget",
-      "path": "personal-budget",
-      "description": "Personal finance tracking — expense logging, savings goals, monthly reports, spending categories"
-    }
+    { "name": "llm-budget", "path": "llm-budget", "description": "LLM cost estimation, usage tracking, optimization, and forecasting" },
+    { "name": "personal-budget", "path": "personal-budget", "description": "Personal expense tracking, savings goals, and monthly reporting" }
   ],
   "entrypoint": "index.js",
   "triggers": ["scheduled", "on-demand", "threshold-alert"],
-  "api": {
-    "invokeUrl": "/api/agents/budget/invoke",
-    "skillsUrl": "/api/agents/budget/skills",
-    "statusUrl": "/api/agents/budget/status"
-  },
-  "inherits": {}
+  "api": { "invokeUrl": "/api/agents/budget/invoke", "skillsUrl": "/api/agents/budget/skills" }
 }

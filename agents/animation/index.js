@@ -8,6 +8,10 @@ export async function run(input, context) {
       return generateStoryboard(params, context);
     case "select-library":
       return selectLibrary(params);
+    case "hello":
+      return runHello(params);
+    case "verify":
+      return runVerify(params);
     default:
       return {
         success: false,
@@ -16,20 +20,40 @@ export async function run(input, context) {
   }
 }
 
+function runHello({ name = "world" }) {
+  return {
+    success: true,
+    message: `Hello, ${name}! Animation agent is running.`,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function runVerify({ expression }) {
+  if (!expression) {
+    return { success: true, passed: true, result: true, message: "animation agent is alive and verified" };
+  }
+  try {
+    const passed = !!eval?.(expression);
+    return { success: true, passed, result: passed, expression, message: passed ? "rules check passed" : "rules check failed" };
+  } catch (e) {
+    return { success: true, passed: false, error: e.message, expression, message: "rules check failed — could not evaluate" };
+  }
+}
+
 async function generateStoryboard({ description, style = "minimal" }, context) {
   const { llm } = context;
   const prompt = `Create a 4-panel animation storyboard for: "${description}". Style: ${style}. Return JSON { panels: [{ number: number, description: string, duration: string, elements: string[], transition: string }] }`;
 
-  const result = await llm.messages.create({
+  const result = await llm.chat({
     model: "claude-sonnet-4-20250514", max_tokens: 2048,
     messages: [{ role: "user", content: prompt }],
   });
 
   try {
-    const parsed = JSON.parse(extractJson(result.content[0].text));
+    const parsed = JSON.parse(extractJson(result.text));
     return { success: true, storyboard: parsed };
   } catch {
-    return { success: true, storyboard: { raw: result.content[0].text } };
+    return { success: true, storyboard: { raw: result.text } };
   }
 }
 

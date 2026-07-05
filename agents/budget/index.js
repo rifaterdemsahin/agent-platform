@@ -1,8 +1,6 @@
-import { loadAgent } from "../../runtime/agent-loader.js";
+export const agent = { name: "budget", version: "1.0.0", parent: true };
 
 const budgets = new Map();
-
-export const agent = { name: "budget", version: "1.0.0", parent: true };
 
 export async function run(input, context) {
   const { skill, params } = input;
@@ -11,9 +9,33 @@ export async function run(input, context) {
     case "set-budget":
       return setBudget(params);
     case "get-status":
-      return getStatus(params, context);
+      return getStatus(params);
+    case "hello":
+      return runHello(params);
+    case "verify":
+      return runVerify(params);
     default:
       return { success: false, error: `Unknown skill: ${skill}. Try sub-agents: llm-budget, personal-budget` };
+  }
+}
+
+function runHello({ name = "world" }) {
+  return {
+    success: true,
+    message: `Hello, ${name}! Budget agent is running.`,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function runVerify({ expression }) {
+  if (!expression) {
+    return { success: true, passed: true, result: true, message: "budget agent is alive and verified" };
+  }
+  try {
+    const passed = !!eval?.(expression);
+    return { success: true, passed, result: passed, expression, message: passed ? "rules check passed" : "rules check failed" };
+  } catch (e) {
+    return { success: true, passed: false, error: e.message, expression, message: "rules check failed — could not evaluate" };
   }
 }
 
@@ -22,18 +44,7 @@ function setBudget({ projectId, limit, period, alertThreshold = 80 }) {
   return { success: true, budget: { projectId, limit, period, alertThreshold } };
 }
 
-async function getStatus({ projectId }, context) {
+function getStatus({ projectId }) {
   const budget = budgets.get(projectId);
-  const llmAgent = loadAgent("budget/llm-budget");
-  const personalAgent = loadAgent("budget/personal-budget");
-
-  return {
-    success: true,
-    projectId,
-    budget: budget || null,
-    subAgents: {
-      "llm-budget": llmAgent ? { loaded: true, skills: llmAgent.manifest.skills?.length || 0 } : { loaded: false },
-      "personal-budget": personalAgent ? { loaded: true, skills: personalAgent.manifest.skills?.length || 0 } : { loaded: false },
-    },
-  };
+  return { success: true, projectId, budget: budget || null };
 }

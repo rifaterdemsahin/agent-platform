@@ -9,51 +9,15 @@
     "pollingIntervalMs": 30000
   },
   "skills": [
-    {
-      "name": "lint",
-      "description": "Runs lint checks on a given codebase and returns violations",
-      "parameters": {
-        "path": "string — filesystem path to the project",
-        "language": "string — 'typescript' | 'javascript' | 'python' | 'go'"
-      }
-    },
-    {
-      "name": "typecheck",
-      "description": "Runs type-checking (tsc, mypy, etc.) and returns type errors",
-      "parameters": {
-        "path": "string — filesystem path to the project",
-        "language": "string"
-      }
-    },
-    {
-      "name": "env-validate",
-      "description": "Checks that required environment variables are present and well-formed",
-      "parameters": {
-        "path": "string — path to .env.example or env schema",
-        "environment": "string — 'development' | 'staging' | 'production'"
-      }
-    },
-    {
-      "name": "config-check",
-      "description": "Validates project configuration files (JSON, YAML, TOML) for syntax and schema",
-      "parameters": {
-        "path": "string",
-        "configType": "string — 'json' | 'yaml' | 'toml' | 'auto'"
-      }
-    },
-    {
-      "name": "deploy-readiness",
-      "description": "Checks if a project is ready for deployment — verifies build output, Dockerfile, fly.toml, etc.",
-      "parameters": {
-        "path": "string"
-      }
-    }
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression (e.g. 1=1) to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
+    { "name": "lint", "description": "Runs lint checks on a given codebase and returns violations", "parameters": { "path": "string", "language": "string" } },
+    { "name": "typecheck", "description": "Runs type-checking (tsc, mypy, etc.) and returns type errors", "parameters": { "path": "string", "language": "string" } },
+    { "name": "env-validate", "description": "Checks that required environment variables are present and well-formed", "parameters": { "path": "string", "environment": "string" } },
+    { "name": "config-check", "description": "Validates project configuration files (JSON, YAML, TOML) for syntax and schema", "parameters": { "path": "string", "configType": "string" } },
+    { "name": "deploy-readiness", "description": "Checks if a project is ready for deployment", "parameters": { "path": "string" } }
   ],
   "entrypoint": "index.js",
   "triggers": ["pre-commit", "pre-deploy", "scheduled", "on-demand"],
-  "api": {
-    "invokeUrl": "/api/agents/sanity-check/invoke",
-    "skillsUrl": "/api/agents/sanity-check/skills",
-    "statusUrl": "/api/agents/sanity-check/status"
-  }
+  "api": { "invokeUrl": "/api/agents/sanity-check/invoke", "skillsUrl": "/api/agents/sanity-check/skills" }
 }

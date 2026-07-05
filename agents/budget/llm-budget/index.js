@@ -1,11 +1,7 @@
+export const agent = { name: "llm-budget", version: "1.0.0", parent: "budget" };
+
 const budgets = new Map();
 const usageLogs = new Map();
-
-export const agent = {
-  name: "llm-budget",
-  version: "1.0.0",
-  parent: "budget",
-};
 
 export async function run(input, context) {
   const { skill, params } = input;
@@ -19,8 +15,28 @@ export async function run(input, context) {
       return optimizeCosts(params, context);
     case "forecast":
       return forecast(params, context);
+    case "hello":
+      return runHello(params);
+    case "verify":
+      return runVerify(params);
     default:
       return { success: false, error: `Unknown skill: ${skill}` };
+  }
+}
+
+function runHello({ name = "world" }) {
+  return { success: true, message: `Hello, ${name}! LLM budget agent is running.`, timestamp: new Date().toISOString() };
+}
+
+function runVerify({ expression }) {
+  if (!expression) {
+    return { success: true, passed: true, result: true, message: "llm-budget agent rules check passed" };
+  }
+  try {
+    const passed = !!eval?.(expression);
+    return { success: true, passed, result: passed, expression, message: passed ? "rules check passed" : "rules check failed" };
+  } catch (e) {
+    return { success: true, passed: false, error: e.message, expression, message: "rules check failed" };
   }
 }
 
@@ -49,11 +65,7 @@ function estimateCost({ model, inputTokens, outputTokens, provider }) {
   const cost = ((inputTokens / 1_000_000) * rates.input) + ((outputTokens / 1_000_000) * rates.output);
   return {
     success: true,
-    estimate: {
-      model, provider, inputTokens, outputTokens,
-      costUSD: Math.round(cost * 10000) / 10000,
-      pricing: rates,
-    },
+    estimate: { model, provider, inputTokens, outputTokens, costUSD: Math.round(cost * 10000) / 10000, pricing: rates },
   };
 }
 
@@ -69,7 +81,7 @@ function trackUsage({ projectId, period }, context) {
   const totalTokens = filtered.reduce((sum, l) => sum + (l.inputTokens || 0) + (l.outputTokens || 0), 0);
 
   const budget = budgets.get(projectId);
-  let alerts = [];
+  const alerts = [];
   if (budget && budget.period === period) {
     const pct = (totalCost / budget.limit) * 100;
     if (pct >= budget.alertThreshold) {
@@ -80,37 +92,32 @@ function trackUsage({ projectId, period }, context) {
     }
   }
 
-  return {
-    success: true, projectId, period,
-    totalCostUSD: Math.round(totalCost * 10000) / 10000,
-    totalTokens, callCount: filtered.length, alerts,
-  };
+  return { success: true, projectId, period, totalCostUSD: Math.round(totalCost * 10000) / 10000, totalTokens, callCount: filtered.length, alerts };
 }
 
 async function optimizeCosts({ projectId }, context) {
   const logs = usageLogs.get(projectId) || [];
   if (logs.length === 0) {
-    return { success: true, suggestions: ["No usage data yet. Start tracking to get optimization suggestions."] };
+    return { success: true, suggestions: [] };
   }
 
   const { llm } = context;
   const usageSummary = logs.slice(-100).map(l => ({
-    time: new Date(l.timestamp).toISOString(),
-    cost: l.cost, inputTokens: l.inputTokens, outputTokens: l.outputTokens, model: l.model,
+    time: new Date(l.timestamp).toISOString(), cost: l.cost, inputTokens: l.inputTokens, outputTokens: l.outputTokens, model: l.model,
   }));
 
   const prompt = `Analyze this LLM usage and suggest 3-5 cost optimizations:\n${JSON.stringify(usageSummary, null, 2)}\n\nReturn JSON { suggestions: [{ action: string, estimatedSavingPercent: number, reasoning: string }] }`;
 
-  const result = await llm.messages.create({
+  const result = await llm.chat({
     model: "claude-sonnet-4-20250514", max_tokens: 2048,
     messages: [{ role: "user", content: prompt }],
   });
 
   try {
-    const parsed = JSON.parse(extractJson(result.content[0].text));
+    const parsed = JSON.parse(extractJson(result.text));
     return { success: true, ...parsed };
   } catch {
-    return { success: true, suggestions: [{ action: result.content[0].text, estimatedSavingPercent: 0, reasoning: "" }] };
+    return { success: true, suggestions: [{ action: result.text, estimatedSavingPercent: 0, reasoning: "" }] };
   }
 }
 
@@ -125,16 +132,16 @@ async function forecast({ projectId, daysAhead }, context) {
 
   const prompt = `Given daily LLM costs: ${JSON.stringify(dailyCosts)}, forecast costs for the next ${daysAhead} days. Return JSON { dailyForecast: [{ date: string, estimatedCost: number }], totalForecastCost: number, confidence: 'low'|'medium'|'high' }`;
 
-  const result = await llm.messages.create({
+  const result = await llm.chat({
     model: "claude-sonnet-4-20250514", max_tokens: 2048,
     messages: [{ role: "user", content: prompt }],
   });
 
   try {
-    const parsed = JSON.parse(extractJson(result.content[0].text));
+    const parsed = JSON.parse(extractJson(result.text));
     return { success: true, ...parsed };
   } catch {
-    return { success: true, message: result.content[0].text };
+    return { success: true, message: result.text };
   }
 }
 

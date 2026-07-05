@@ -352,6 +352,50 @@
     .flow-step code { background: var(--bg); padding: 0.08rem 0.25rem; border-radius: 3px; font-size: 0.65rem; color: var(--accent); }
 
     /* ─── Table ─── */
+    /* ─── Test page presets ─── */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.5rem;
+    }
+    .preset-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      transition: border-color 0.15s;
+      cursor: pointer;
+    }
+    .preset-card:hover { border-color: var(--accent); }
+    .preset-card .preset-agent {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: monospace;
+      margin-bottom: 0.2rem;
+    }
+    .preset-card .preset-premise {
+      font-size: 0.75rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+    .preset-card .preset-conclusion {
+      font-size: 0.65rem;
+      color: var(--green);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .preset-card .preset-action {
+      font-size: 0.6rem;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* ─── Sub-nav (Architecture / Agents) ─── */
     .arch-subnav {
       display: flex;
@@ -648,32 +692,52 @@ npm run dev              # http://localhost:8080</code></pre>
     </div>
 
     <div id="page-test" class="page">
-      <div class="prose">
-        <h2>Test Agents</h2>
-        <p>Select an agent, choose a skill, and invoke it to see results. Supports Anthropic and Deepseek backends.</p>
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:1rem">🧪 Test Agents</h2>
+          <span id="test-agent-count" style="font-size:0.7rem;color:var(--muted)"></span>
+          <span class="bg-badge" id="test-status-badge" style="display:none"><span class="pulse"></span><span id="test-status-text"></span></span>
+        </div>
+        <p style="color:var(--muted);font-size:0.75rem;margin-top:0.3rem">Select an agent, choose a skill, and invoke it to see results. Use <strong>hello</strong> or <strong>verify</strong> to check agent health without needing LLM.</p>
       </div>
-      <div class="card" style="margin-top:1rem">
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem">
+
+      <div class="prose" style="margin-bottom:0.75rem">
+        <h2 style="margin:0 0 0.5rem;font-size:0.9rem">📋 Test Presets — Premise & Conclusion</h2>
+      </div>
+      <div id="test-presets" class="presets-grid">Loading presets...</div>
+
+      <div class="card" style="margin-top:0.75rem">
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem">
           <div style="flex:1;min-width:200px">
             <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Agent</label>
-            <select id="test-agent" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem" onchange="onTestAgentChange()"></select>
+            <select id="test-agent" onchange="onTestAgentChange()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.45rem 0.6rem;color:var(--text);font-size:0.78rem;font-family:monospace"></select>
           </div>
           <div style="flex:1;min-width:200px">
             <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Skill</label>
-            <select id="test-skill" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem"></select>
+            <select id="test-skill" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.45rem 0.6rem;color:var(--text);font-size:0.78rem;font-family:monospace"></select>
           </div>
-          <div style="flex:1;min-width:150px">
-            <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">LLM Provider</label>
-            <select id="test-provider" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem">
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Provider</label>
+            <select id="test-provider" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.45rem 0.6rem;color:var(--text);font-size:0.78rem">
               <option value="anthropic">Anthropic</option>
               <option value="deepseek">Deepseek</option>
             </select>
           </div>
         </div>
+
         <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Params (JSON)</label>
-        <textarea id="test-params" rows="4" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text);font-size:0.75rem;font-family:monospace;margin-bottom:0.75rem">{"path": "."}</textarea>
-        <button onclick="runTest()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.5rem 1.5rem;font-size:0.8rem;cursor:pointer;font-weight:600">Invoke Agent</button>
-        <pre id="test-result" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.75rem;margin-top:0.75rem;font-size:0.72rem;font-family:monospace;white-space:pre-wrap;max-height:400px;overflow-y:auto;display:none"></pre>
+        <div style="display:flex;gap:0.5rem">
+          <textarea id="test-params" rows="3" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.6rem;color:var(--text);font-size:0.75rem;font-family:monospace;resize:vertical" placeholder='{"path": "."}'>{"path": "."}</textarea>
+          <button onclick="runTest()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.5rem 1.2rem;font-size:0.8rem;cursor:pointer;font-weight:600;white-space:nowrap;align-self:flex-start">▶ Invoke</button>
+        </div>
+
+        <div id="test-result-container" style="display:none;margin-top:0.75rem">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem">
+            <span id="test-result-status" style="font-size:0.7rem;font-weight:600"></span>
+            <span id="test-result-time" style="font-size:0.6rem;color:var(--muted)"></span>
+          </div>
+          <pre id="test-result" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.75rem;font-size:0.72rem;font-family:monospace;white-space:pre-wrap;max-height:400px;overflow-y:auto;margin:0"></pre>
+        </div>
       </div>
     </div>
   </main>
@@ -758,13 +822,84 @@ npm run dev              # http://localhost:8080</code></pre>
     }
 
     /* ─── Test page ─── */
+    const TEST_PRESETS = {
+      "sanity-check": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting with timestamp", skill: "hello", params: { name: "world" } },
+        { premise: "Verify 1==1 is true", conclusion: "passed = true, message = 'sanity check passed'", skill: "verify", params: { expression: "1==1" } },
+        { premise: "Verify without expression", conclusion: "passed = true, agent is alive", skill: "verify", params: {} },
+      ],
+      "budget": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting with timestamp", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check without expression", conclusion: "passed = true, verified", skill: "verify", params: {} },
+        { premise: "Set a budget limit", conclusion: "Creates budget with projectId/limit/period", skill: "set-budget", params: { projectId: "test-proj", limit: 100, period: "monthly" } },
+      ],
+      "animation": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting with timestamp", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check passes", conclusion: "passed = true, animation agent verified", skill: "verify", params: {} },
+        { premise: "Select library for web/simple", conclusion: "Recommends 'CSS transitions/animations'", skill: "select-library", params: { targetPlatform: "web", complexity: "simple", performanceBudget: "low" } },
+      ],
+      "budget/llm-budget": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting", skill: "hello", params: { name: "world" } },
+        { premise: "Estimate Claude Sonnet cost", conclusion: "Returns cost estimate with pricing", skill: "estimate-cost", params: { model: "claude-sonnet-4-20250514", inputTokens: 5000, outputTokens: 2000, provider: "anthropic" } },
+      ],
+      "budget/personal-budget": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting", skill: "hello", params: { name: "world" } },
+        { premise: "Track a food expense", conclusion: "Returns expense entry with id", skill: "track-expense", params: { category: "food", amount: 25.50, description: "Groceries" } },
+      ],
+      "animation/remotion": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check passes", conclusion: "passed = true", skill: "verify", params: {} },
+      ],
+      "animation/lottie": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check passes", conclusion: "passed = true", skill: "verify", params: {} },
+      ],
+    };
+
+    function renderPresets() {
+      const container = document.getElementById("test-presets");
+      if (!container) return;
+      const emojis = { "sanity-check": "🛡", "budget": "💰", "animation": "🎬", "budget/llm-budget": "🤖", "budget/personal-budget": "💳", "animation/remotion": "🎥", "animation/lottie": "✨" };
+      let html = "";
+      for (const [agentName, presets] of Object.entries(TEST_PRESETS)) {
+        const emoji = emojis[agentName] || "📦";
+        for (const p of presets) {
+          html += `<div class="preset-card" onclick="runPreset('${agentName}','${p.skill}','${escapeJson(p.params)}')">
+            <div class="preset-agent">${emoji} ${agentName}</div>
+            <div class="preset-premise">${p.premise}</div>
+            <div class="preset-conclusion">✓ ${p.conclusion}</div>
+            <div class="preset-action">▶ RUN TEST</div>
+          </div>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function escapeJson(obj) {
+      return encodeURIComponent(JSON.stringify(obj));
+    }
+
+    function runPreset(agentName, skill, paramsEncoded) {
+      document.getElementById("test-agent").value = agentName;
+      onTestAgentChange();
+      setTimeout(() => {
+        document.getElementById("test-skill").value = skill;
+        document.getElementById("test-params").value = JSON.stringify(JSON.parse(decodeURIComponent(paramsEncoded)), null, 2);
+        runTest();
+      }, 50);
+    }
+
     function populateTestAgents() {
       const sel = document.getElementById("test-agent");
+      const countEl = document.getElementById("test-agent-count");
       if (!sel || !agentCache.length) return;
-      sel.innerHTML = agentCache.filter(a => a.skills && a.skills.length).map(a =>
+      const agentsWithSkills = agentCache.filter(a => a.skills && a.skills.length);
+      countEl.textContent = `${agentsWithSkills.length} agents loaded`;
+      sel.innerHTML = agentsWithSkills.map(a =>
         `<option value="${a.name}">${a.name}</option>`
       ).join("");
       onTestAgentChange();
+      renderPresets();
     }
     function onTestAgentChange() {
       const agentName = document.getElementById("test-agent").value;
@@ -780,9 +915,20 @@ npm run dev              # http://localhost:8080</code></pre>
       const skill = document.getElementById("test-skill").value;
       const provider = document.getElementById("test-provider").value;
       const paramsRaw = document.getElementById("test-params").value;
+      const container = document.getElementById("test-result-container");
       const resultEl = document.getElementById("test-result");
-      resultEl.style.display = "block";
-      resultEl.textContent = "Invoking " + agentName + "/" + skill + " with " + provider + "...";
+      const statusEl = document.getElementById("test-result-status");
+      const timeEl = document.getElementById("test-result-time");
+      const badge = document.getElementById("test-status-badge");
+      const badgeText = document.getElementById("test-status-text");
+
+      container.style.display = "block";
+      resultEl.textContent = "Sending request...";
+      statusEl.textContent = "⏳ Running";
+      statusEl.style.color = "var(--orange)";
+      badge.style.display = "none";
+
+      const start = Date.now();
       try {
         const params = JSON.parse(paramsRaw);
         const res = await fetch(`${API}/agents/tree/${agentName}/invoke`, {
@@ -791,9 +937,33 @@ npm run dev              # http://localhost:8080</code></pre>
           body: JSON.stringify({ skill, params: { ...params, provider } })
         });
         const data = await res.json();
+        const elapsed = Date.now() - start;
+        timeEl.textContent = `${elapsed}ms`;
         resultEl.textContent = JSON.stringify(data, null, 2);
+
+        if (data.error) {
+          statusEl.textContent = "✖ Error";
+          statusEl.style.color = "var(--red)";
+          resultEl.style.borderColor = "var(--red)";
+        } else if (data.result?.success === false) {
+          statusEl.textContent = "⚠ Failed";
+          statusEl.style.color = "var(--orange)";
+          resultEl.style.borderColor = "var(--orange)";
+        } else {
+          statusEl.textContent = "✓ Success";
+          statusEl.style.color = "var(--green)";
+          resultEl.style.borderColor = "var(--green)";
+        }
+
+        badge.style.display = "inline-flex";
+        badgeText.textContent = `${agentName}/${skill} → ${provider}`;
       } catch (err) {
+        const elapsed = Date.now() - start;
+        timeEl.textContent = `${elapsed}ms`;
         resultEl.textContent = "Error: " + err.message;
+        resultEl.style.borderColor = "var(--red)";
+        statusEl.textContent = "✖ Network error";
+        statusEl.style.color = "var(--red)";
       }
     }
 
