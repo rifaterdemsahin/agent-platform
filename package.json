@@ -1,0 +1,17 @@
+{
+  "name": "agent-platform",
+  "version": "1.0.0",
+  "description": "Multi-agent platform — agents expose skills, code, and descriptions via API. LLM-powered background agents runnable from any project.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@anthropic-ai/sdk": "^0.32.0"
+  }
+}
