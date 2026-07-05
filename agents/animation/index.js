@@ -11,7 +11,7 @@ export async function run(input, context) {
     default:
       return {
         success: false,
-        error: `Unknown skill: ${skill}. Try sub-agents: motion (Framer/GSAP), lottie (Lottie/Bodymovin)`,
+        error: `Unknown skill: ${skill}. Try sub-agents: remotion (React video rendering), lottie (Lottie/Bodymovin)`,
       };
   }
 }
@@ -35,8 +35,8 @@ async function generateStoryboard({ description, style = "minimal" }, context) {
 
 function selectLibrary({ targetPlatform, complexity, performanceBudget }) {
   const recommendations = {
-    web: { simple: "CSS transitions/animations", moderate: "Framer Motion", complex: "GSAP" },
-    react: { simple: "Framer Motion", moderate: "Framer Motion + layout animations", complex: "GSAP + React hooks" },
+    web: { simple: "CSS transitions/animations", moderate: "Framer Motion", complex: "Remotion (React video)" },
+    react: { simple: "Framer Motion", moderate: "Remotion + compositions", complex: "Remotion + Lambda rendering" },
     "react-native": { simple: "Animated API", moderate: "Reanimated 2", complex: "Reanimated 2 + Lottie" },
     ios: { simple: "UIView.animate", moderate: "UIKit Dynamics", complex: "Lottie" },
     android: { simple: "ViewPropertyAnimator", moderate: "MotionLayout", complex: "Lottie" },

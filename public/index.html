@@ -717,6 +717,11 @@ npm run dev              # http://localhost:8080</code></pre>
             <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${a.name}/skills</span></div>
             <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${a.name}/invoke</span></div>
           </details>
+          <div style="margin-top:0.6rem;font-size:0.62rem;display:flex;gap:0.6rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit agent.json">⬣ spec</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit index.js">⌨ code</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents/${a.name}/skills" target="_blank" style="color:var(--muted);text-decoration:none" title="Browse skills">⚙ skills</a>
+          </div>
         </div>
       `;
       }).join("");
@@ -743,8 +748,17 @@ npm run dev              # http://localhost:8080</code></pre>
               <div class="tree-label child">${sa.name} <span style="font-size:0.55rem;font-weight:400">← ${hl.name}</span></div>
               <div class="tree-connector">${sa.description}</div>
               <div class="tree-skills">${(sa.skills || []).map(s => `<span class="tree-skill">${s.name}</span>`).join("")}</div>
+              <div style="margin-top:0.3rem;font-size:0.55rem;display:flex;gap:0.4rem">
+                <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${sa.path}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none">spec</a>
+                <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${sa.path}/index.js" target="_blank" style="color:var(--muted);text-decoration:none">code</a>
+              </div>
             </div>
             `).join("") : ""}
+            <div style="margin-top:0.4rem;font-size:0.58rem;display:flex;gap:0.5rem">
+              <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${hl.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none">⬣ edit spec</a>
+              <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${hl.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none">⌨ edit code</a>
+              <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents/${hl.name}/skills" target="_blank" style="color:var(--muted);text-decoration:none">⚙ edit skills</a>
+            </div>
           </div>
         </div>`;
       }).join("");
@@ -809,6 +823,12 @@ npm run dev              # http://localhost:8080</code></pre>
             <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}/code</span></div>
             <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${agent.name}/invoke</span></div>
           </details>
+
+          <div style="margin-top:0.6rem;font-size:0.62rem;display:flex;gap:0.6rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${agent.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit agent.json on GitHub">⬣ edit spec</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${agent.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit index.js on GitHub">⌨ edit code</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents/${agent.name}/skills" target="_blank" style="color:var(--muted);text-decoration:none" title="Browse skills on GitHub">⚙ edit skills</a>
+          </div>
 
           <div class="invoke-form">
             <h3 style="font-size:0.8rem;margin-bottom:0.4rem">Invoke a Skill</h3>

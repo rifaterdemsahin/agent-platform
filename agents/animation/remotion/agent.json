@@ -1,0 +1,92 @@
+{
+  "name": "remotion",
+  "version": "1.0.0",
+  "description": "Remotion sub-agent — programmatic React video rendering. Creates compositions, sequences clips, syncs audio, applies transitions/overlays, and renders MP4 videos. Inherits from animation parent.",
+  "parent": "animation",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": false
+  },
+  "skills": [
+    {
+      "name": "render-video",
+      "description": "Generates a Remotion composition and renders it as MP4/WebM/GIF via npx remotion render",
+      "parameters": {
+        "compositionId": "string — composition name",
+        "outputFormat": "string — 'mp4' | 'webm' | 'gif' | 'still'",
+        "fps": "number — frames per second (default 30)",
+        "durationInFrames": "number",
+        "outputPath": "string — output file path"
+      }
+    },
+    {
+      "name": "create-composition",
+      "description": "Generates a Remotion React composition component with useCurrentFrame, useVideoConfig, and interpolate",
+      "parameters": {
+        "description": "string — what the animation should do visually",
+        "width": "number — canvas width (default 1920)",
+        "height": "number — canvas height (default 1080)",
+        "durationInFrames": "number",
+        "fps": "number"
+      }
+    },
+    {
+      "name": "sequence-clips",
+      "description": "Generates a Remotion <Sequence> chain to arrange clips in order with offsets",
+      "parameters": {
+        "clips": "array — [{ name: string, from: number, durationInFrames: number }]",
+        "transitions": "string — 'cut' | 'fade' | 'slide' | 'zoom'"
+      }
+    },
+    {
+      "name": "audio-sync",
+      "description": "Generates Remotion code to sync audio tracks with visual frames",
+      "parameters": {
+        "audioSrc": "string — audio file path or URL",
+        "startFrom": "number — frame to start audio",
+        "volume": "number — 0.0 to 1.0"
+      }
+    },
+    {
+      "name": "transitions",
+      "description": "Generates Remotion transition effects: fade, slide, wipe, scale, flip",
+      "parameters": {
+        "type": "string — 'fade' | 'slide' | 'wipe' | 'scale' | 'flip' | 'spring'",
+        "durationInFrames": "number",
+        "direction": "string — 'in' | 'out' | 'both'"
+      }
+    },
+    {
+      "name": "overlays",
+      "description": "Generates Remotion overlay layers: text captions, watermarks, lower-thirds, progress bars",
+      "parameters": {
+        "overlayType": "string — 'caption' | 'watermark' | 'lower-third' | 'progress' | 'countdown'",
+        "content": "string — text or description",
+        "position": "string — 'top' | 'bottom' | 'center' | 'top-left' | 'bottom-right'"
+      }
+    },
+    {
+      "name": "deploy-video",
+      "description": "Generates deployment config for Remotion Lambda — render in cloud at scale",
+      "parameters": {
+        "siteName": "string — Remotion Lambda site name",
+        "region": "string — AWS region",
+        "memoryMb": "number — Lambda memory",
+        "timeout": "number — timeout in seconds"
+      }
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["on-demand"],
+  "inheritsFrom": "animation",
+  "api": {
+    "invokeUrl": "/api/agents/animation/remotion/invoke",
+    "skillsUrl": "/api/agents/animation/remotion/skills"
+  },
+  "links": {
+    "docs": "https://remotion.dev/docs",
+    "github": "https://github.com/remotion-dev/remotion",
+    "api": "https://remotion.dev/api"
+  }
+}

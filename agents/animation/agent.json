@@ -1,7 +1,7 @@
 {
   "name": "animation",
   "version": "1.0.0",
-  "description": "Parent animation agent — generates and manages animations. Delegates motion/Framer/GSAP work to motion sub-agent and Lottie animation work to lottie sub-agent.",
+  "description": "Parent animation agent — generates and manages animations. Delegates Remotion video rendering to remotion sub-agent and Lottie animation work to lottie sub-agent.",
   "runtime": {
     "type": "node",
     "llm": "claude-sonnet-4-20250514",
@@ -29,9 +29,9 @@
   ],
   "subAgents": [
     {
-      "name": "motion",
-      "path": "motion",
-      "description": "Code-driven animation — Framer Motion, GSAP, CSS animations, keyframes, transitions"
+      "name": "remotion",
+      "path": "remotion",
+      "description": "Programmatic React video rendering — compositions, sequences, transitions, overlays, audio sync, Lambda deployment"
     },
     {
       "name": "lottie",
