@@ -6,12 +6,17 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "test": "node tests/index.js",
+    "test:sanity": "node -e \"import('./tests/sanity-check.test.js').then(m=>m.testSanityCheck())\"",
+    "test:budget": "node -e \"import('./tests/budget.test.js').then(m=>m.testBudgetAgent())\"",
+    "test:animation": "node -e \"import('./tests/animation.test.js').then(m=>m.testAnimationAgent())\""
   },
   "dependencies": {
     "express": "^4.21.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "@anthropic-ai/sdk": "^0.32.0"
+    "@anthropic-ai/sdk": "^0.32.0",
+    "openai": "^4.72.0"
   }
 }

@@ -192,6 +192,10 @@
       transition: border-color 0.2s, background 0.2s;
     }
     .card:hover { border-color: var(--accent); }
+    .card.card-budget { border-left: 3px solid var(--orange); }
+    .card.card-sanity { border-left: 3px solid var(--green); }
+    .card.card-animation { border-left: 3px solid var(--accent); }
+    .card.card-sub { border-left: 2px solid var(--blue); }
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.35rem; }
     .card-title { font-size: 1.05rem; font-weight: 600; }
     .card-version { color: var(--muted); font-size: 0.7rem; background: var(--bg); padding: 0.1rem 0.4rem; border-radius: 4px; }
@@ -438,14 +442,14 @@
   </header>
 
   <nav>
-    <a class="active" data-page="dashboard">Dashboard <span class="nav-badge">live</span></a>
-    <a data-page="sanity">Sanity Check</a>
-    <a data-page="budget">Budget</a>
-    <a data-page="animation">Animation</a>
-    <a data-page="architecture">Architecture</a>
-    <a data-page="what">What</a>
-    <a data-page="why">Why</a>
-    <a data-page="how">How</a>
+    <a class="active" data-page="dashboard">🏠 Dashboard <span class="nav-badge">live</span></a>
+    <a data-page="sanity">🛡 Sanity</a>
+    <a data-page="budget">💰 Budget</a>
+    <a data-page="animation">🎬 Animation</a>
+    <a data-page="architecture">🗂 Architecture</a>
+    <a data-page="what">📋 What</a>
+    <a data-page="why">❓ Why</a>
+    <a data-page="how">🔧 How</a>
   </nav>
 
   <main>
@@ -678,49 +682,60 @@ npm run dev              # http://localhost:8080</code></pre>
     /* ─── Dashboard ─── */
     function renderDashboard(agents, hierarchy) {
       const topLevel = (hierarchy || []).map(hl => hl.name);
+      const emojis = {
+        "sanity-check": "🛡", "budget": "💰", "llm-budget": "🤖", "personal-budget": "💳",
+        "animation": "🎬", "remotion": "🎥", "lottie": "✨",
+      };
+      const cardColors = a => {
+        if (a.name.startsWith("budget")) return "card-budget";
+        if (a.name.startsWith("sanity")) return "card-sanity";
+        if (a.name.startsWith("animation")) return "card-animation";
+        return "";
+      };
+      const isSub = a => a.name.includes("/");
       document.getElementById("dashboard-content").innerHTML = agents.map(a => {
-        const isTop = topLevel.some(tl => a.name === tl || a.name.startsWith(tl + "/"));
-        const depth = a.name.split("/").length;
-        const isSub = a.name.includes("/");
+        const emoji = emojis[a.name] || "📦";
+        const colorClass = cardColors(a);
+        const subClass = isSub(a) ? "card-sub" : "";
         let subBlock = "";
-        if (!isSub) {
+        if (!isSub(a)) {
           const hl = (hierarchy || []).find(h => h.name === a.name);
           if (hl && hl.subAgents && hl.subAgents.length) {
-            subBlock = `<div style="margin-bottom:0.5rem;font-size:0.7rem;color:var(--muted)">Sub-agents: ${hl.subAgents.map(sa => `<code style="background:var(--bg);padding:0.1rem 0.35rem;border-radius:3px;margin:0 0.15rem">${sa.name}</code>`).join("")}</div>`;
+            subBlock = `<div style="margin-bottom:0.5rem;font-size:0.7rem;color:var(--muted)">⬇ Sub-agents: ${hl.subAgents.map(sa => `<code style="background:var(--bg);padding:0.1rem 0.35rem;border-radius:3px;margin:0 0.15rem">${sa.name}</code>`).join("")}</div>`;
           }
         }
         let parentBadge = "";
-        if (isSub) {
-          const parent = a.parent || a.inheritsFrom || a.name.split("/")[0];
-          parentBadge = `<span style="font-size:0.65rem;color:var(--blue);margin-left:0.3rem">← ${parent}</span>`;
+        if (isSub(a)) {
+          const p = a.parent || a.inheritsFrom || a.name.split("/")[0];
+          parentBadge = `<span style="font-size:0.6rem;color:var(--blue);margin-left:0.3rem">↖ ${p}</span>`;
         }
         return `
-        <div class="card" style="${isSub ? 'margin-left:1.5rem;border-left:2px solid var(--blue);' : ''}">
+        <div class="card ${colorClass} ${subClass}" style="${isSub(a) ? 'margin-left:1.5rem' : ''}">
           <div class="card-header">
-            <div class="card-title">${a.name}${parentBadge} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "bg" : "demand"}</span></div>
+            <div class="card-title">${emoji} ${a.name}${parentBadge} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "bg" : "demand"}</span></div>
             <div class="card-version">v${a.version}</div>
           </div>
           <div class="card-desc">${a.description || ""}</div>
           ${subBlock}
           <div class="specs-row">
-            <span><span class="label">Spec:</span> <code>agents/${a.name}/agent.json</code></span>
-            <span><span class="label">LLM:</span> ${a.runtime?.llm || "—"}</span>
+            <span><span class="label">📄 Spec:</span> <code>agents/${a.name}/agent.json</code></span>
+            <span><span class="label">🧠 LLM:</span> ${a.runtime?.llm || "—"}</span>
           </div>
-          <div>${(a.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
+          <div>${(a.triggers || []).map(t => `<span class="trigger-badge">⚡ ${t}</span>`).join("")}</div>
           <div class="skills" style="margin-top:0.5rem">${(a.skills || []).map(s => `
-            <span class="skill-tag" onclick="toggleSkill('${a.name}', '${s.name}')" title="${s.description}">${s.name}</span>
+            <span class="skill-tag" onclick="toggleSkill('${a.name}', '${s.name}')" title="${s.description}">🔹 ${s.name}</span>
           `).join("")}</div>
           <div id="skill-detail-${a.name}"></div>
           <details class="endpoints">
-            <summary>API</summary>
+            <summary>🔌 API</summary>
             <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${a.name}</span></div>
             <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${a.name}/skills</span></div>
             <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${a.name}/invoke</span></div>
           </details>
           <div style="margin-top:0.6rem;font-size:0.62rem;display:flex;gap:0.6rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
-            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit agent.json">⬣ spec</a>
-            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit index.js">⌨ code</a>
-            <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents/${a.name}/skills" target="_blank" style="color:var(--muted);text-decoration:none" title="Browse skills">⚙ skills</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit agent.json">📄 spec</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${a.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none" title="Edit index.js">⌨️ code</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/tree/main/agents/${a.name}/skills" target="_blank" style="color:var(--muted);text-decoration:none" title="Browse skills">⚙️ skills</a>
           </div>
         </div>
       `;

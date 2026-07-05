@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { listAgents, listTopLevelAgents, loadAgent, loadSkill } from "./runtime/agent-loader.js";
+import { createLLM } from "./runtime/llm-provider.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -15,8 +16,8 @@ app.use(express.static(path.join(__dirname, "public")));
 const agentRuntimes = new Map();
 
 async function getLLM() {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const provider = process.env.LLM_PROVIDER || "anthropic";
+  return createLLM(provider);
 }
 
 async function getRuntime(agentPath) {
