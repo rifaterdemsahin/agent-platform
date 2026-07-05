@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export function createLLM(provider = "anthropic", apiKey) {
+export function createLLM(provider = "deepseek", apiKey) {
   switch (provider) {
     case "deepseek":
       return createDeepSeek(apiKey);
@@ -31,7 +31,7 @@ function createDeepSeek(apiKey) {
   return {
     provider: "deepseek",
     client: openai,
-    async chat({ model = "deepseek-chat", messages, max_tokens = 4096 }) {
+    async chat({ model = "deepseek-v4-flash", messages, max_tokens = 4096 }) {
       const compatible = messages.map(m => ({
         role: m.role === "assistant" ? "assistant" : "user",
         content: typeof m.content === "string" ? m.content : m.content.map(c => c.text || "").join(""),

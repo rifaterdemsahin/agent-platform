@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const agentRuntimes = new Map();
 
 async function getLLM(provider) {
-  const p = provider || process.env.LLM_PROVIDER || "anthropic";
+  const p = provider || process.env.LLM_PROVIDER || "deepseek";
   return createLLM(p);
 }
 
@@ -107,6 +107,23 @@ app.get("/api/agents/tree/*/code", (req, res) => {
   const agent = loadAgent(agentPath);
   if (!agent) return res.status(404).json({ error: "Agent not found" });
   res.json({ agent: agentPath, codePath: agent.codePath, manifest: agent.manifest });
+});
+
+app.get("/api/config", (_req, res) => {
+  const provider = process.env.LLM_PROVIDER || "deepseek";
+  const keys = {
+    anthropic: !!process.env.ANTHROPIC_API_KEY ? "configured" : "missing",
+    deepseek: !!process.env.DEEPSEEK_API_KEY ? "configured" : "missing",
+  };
+  res.json({
+    provider,
+    defaultModel: provider === "deepseek" ? "deepseek-v4-flash" : "claude-sonnet-4-20250514",
+    apiKeys: keys,
+    port: process.env.PORT || 8080,
+    env: process.env.NODE_ENV || "development",
+    agentCount: listAgents().length,
+    topLevelCount: listTopLevelAgents().length,
+  });
 });
 
 app.get("/api/skills", (_req, res) => {

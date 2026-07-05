@@ -521,6 +521,7 @@
     <a data-page="architecture">🗂 Architecture</a>
     <a data-page="agents">🤖 Agents</a>
     <a data-page="test">🧪 Test</a>
+    <a data-page="config">⚙️ Config</a>
   </nav>
 
   <main>
@@ -707,6 +708,19 @@ npm run dev              # http://localhost:8080</code></pre>
       <div id="test-presets" class="presets-grid">Loading presets...</div>
 
       <div class="card" style="margin-top:0.75rem">
+        <details style="margin-bottom:0.75rem">
+          <summary style="cursor:pointer;font-size:0.72rem;color:var(--muted)">ℹ️ How to construct params</summary>
+          <div style="font-size:0.68rem;color:var(--muted);padding:0.5rem 0 0 1rem;line-height:1.6">
+            <p style="margin:0 0 0.3rem">Params is a <strong>JSON object</strong> sent to the agent skill. Each skill expects specific keys:</p>
+            <ul style="margin:0 0 0.3rem 1rem">
+              <li>Select an <strong>agent</strong> and <strong>skill</strong> above</li>
+              <li>The <span style="color:var(--accent)">expected params</span> appear below the textarea</li>
+              <li>Click the <strong>example</strong> snippet to auto-fill the textarea</li>
+              <li>Provider is passed automatically — no need to include in params</li>
+            </ul>
+            <p style="margin:0"><strong>Tip:</strong> Use <code>hello</code> or <code>verify</code> skills first — they need no LLM and always work.</p>
+          </div>
+        </details>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem">
           <div style="flex:1;min-width:200px">
             <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Agent</label>
@@ -725,11 +739,12 @@ npm run dev              # http://localhost:8080</code></pre>
           </div>
         </div>
 
-        <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Params (JSON)</label>
+        <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:0.2rem">Params (JSON) <span id="test-skill-hint" style="color:var(--accent);font-size:0.65rem"></span></label>
         <div style="display:flex;gap:0.5rem">
           <textarea id="test-params" rows="3" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.6rem;color:var(--text);font-size:0.75rem;font-family:monospace;resize:vertical" placeholder='{"path": "."}'>{"path": "."}</textarea>
           <button onclick="runTest()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.5rem 1.2rem;font-size:0.8rem;cursor:pointer;font-weight:600;white-space:nowrap;align-self:flex-start">▶ Invoke</button>
         </div>
+        <div id="test-params-ref" style="margin-top:0.4rem;font-size:0.65rem;color:var(--muted);line-height:1.5;display:none"></div>
 
         <div id="test-result-container" style="display:none;margin-top:0.75rem">
           <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem">
@@ -739,6 +754,10 @@ npm run dev              # http://localhost:8080</code></pre>
           <pre id="test-result" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:0.75rem;font-size:0.72rem;font-family:monospace;white-space:pre-wrap;max-height:400px;overflow-y:auto;margin:0"></pre>
         </div>
       </div>
+    </div>
+
+    <div id="page-config" class="page">
+      <div id="config-content" style="font-size:0.8rem;color:var(--muted)">Loading configuration...</div>
     </div>
   </main>
   <footer>Agent Platform &middot; LLM-powered background agents &middot; <a href="https://agent-platform-9a3f.fly.dev">Fly.io</a> + <a href="https://rifaterdemsahin.github.io/agent-platform">GitHub Pages</a></footer>
@@ -780,6 +799,8 @@ npm run dev              # http://localhost:8080</code></pre>
           switchAgentsSub(document.querySelector(".agents-sub-link.active")?.dataset.agentsSub || "sanity-check");
         } else if (p === "test") {
           populateTestAgents();
+        } else if (p === "config") {
+          renderConfig();
         }
         // Also render agents sub-content if agents page is active
         const activeAgentsSub = document.querySelector(".agents-sub-link.active");
@@ -884,6 +905,7 @@ npm run dev              # http://localhost:8080</code></pre>
       onTestAgentChange();
       setTimeout(() => {
         document.getElementById("test-skill").value = skill;
+        showSkillHint();
         document.getElementById("test-params").value = JSON.stringify(JSON.parse(decodeURIComponent(paramsEncoded)), null, 2);
         runTest();
       }, 50);
@@ -909,7 +931,36 @@ npm run dev              # http://localhost:8080</code></pre>
       skillSel.innerHTML = (agent.skills || []).map(s =>
         `<option value="${s.name}">${s.name}</option>`
       ).join("");
+      showSkillHint();
     }
+
+    function showSkillHint() {
+      const agentName = document.getElementById("test-agent").value;
+      const skillName = document.getElementById("test-skill").value;
+      const agent = agentCache.find(a => a.name === agentName);
+      if (!agent) return;
+      const skill = (agent.skills || []).find(s => s.name === skillName);
+      const refEl = document.getElementById("test-params-ref");
+      const hintEl = document.getElementById("test-skill-hint");
+      if (!skill || !skill.parameters) {
+        refEl.style.display = "none";
+        hintEl.textContent = "";
+        return;
+      }
+      hintEl.textContent = "— expected params below";
+      refEl.style.display = "block";
+      const params = skill.parameters;
+      const keys = Object.keys(params);
+      const example = {};
+      for (const k of keys) {
+        example[k] = params[k].split("—")[0]?.trim() || params[k];
+      }
+      refEl.innerHTML = `<strong>${skillName}</strong> — ${skill.description || ""}<br>
+        <span style="color:var(--accent)">Schema:</span> ${keys.map(k => `<code>${k}</code>: ${params[k]}`).join(", ")}<br>
+        <span style="color:var(--green)">Example:</span> <code style="cursor:pointer;text-decoration:underline" onclick="document.getElementById('test-params').value='${JSON.stringify(example).replace(/'/g,"&#39;")}';showSkillHint()">${JSON.stringify(example)}</code>`;
+    }
+
+    document.getElementById("test-skill").addEventListener("change", showSkillHint);
     async function runTest() {
       const agentName = document.getElementById("test-agent").value;
       const skill = document.getElementById("test-skill").value;
@@ -1229,6 +1280,91 @@ npm run dev              # http://localhost:8080</code></pre>
         resultEl.textContent = JSON.stringify(data, null, 2);
       } catch (err) {
         resultEl.textContent = "Error: " + err.message;
+      }
+    }
+
+    /* ─── Config ─── */
+    async function renderConfig() {
+      const el = document.getElementById("config-content");
+      el.innerHTML = "Loading configuration...";
+      try {
+        const res = await fetch(`${API}/config`);
+        const cfg = await res.json();
+        const statusIcon = (v) => v === "configured" ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>';
+        el.innerHTML = `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚙️ Platform Configuration</div>
+            </div>
+            <table class="compare-table" style="margin-top:0.5rem">
+              <tr><th>Setting</th><th>Value</th></tr>
+              <tr><td>Default LLM Provider</td><td><strong style="color:var(--accent)">${cfg.provider}</strong></td></tr>
+              <tr><td>Default Model</td><td><code style="background:var(--bg);padding:0.1rem 0.4rem;border-radius:3px;font-size:0.72rem">${cfg.defaultModel}</code></td></tr>
+              <tr><td>Port</td><td>${cfg.port}</td></tr>
+              <tr><td>Environment</td><td>${cfg.env}</td></tr>
+              <tr><td>Agents Loaded</td><td>${cfg.agentCount} (${cfg.topLevelCount} top-level)</td></tr>
+              <tr><td>Deepseek API Key</td><td>${statusIcon(cfg.apiKeys?.deepseek)} ${cfg.apiKeys?.deepseek}</td></tr>
+              <tr><td>Anthropic API Key</td><td>${statusIcon(cfg.apiKeys?.anthropic)} ${cfg.apiKeys?.anthropic}</td></tr>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top:0.75rem">
+            <div class="card-header">
+              <div class="card-title">🤖 LLM Providers</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0.75rem;margin-top:0.5rem">
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem">
+                <div style="font-weight:600;color:var(--accent);margin-bottom:0.3rem">Deepseek (default)</div>
+                <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem">Provider for all agent invocations</div>
+                <div style="font-size:0.68rem;color:var(--muted)">Model: <code>deepseek-v4-flash</code></div>
+                <div style="font-size:0.68rem;color:var(--muted)">Key: <code>DEEPSEEK_API_KEY</code></div>
+                <div style="font-size:0.68rem;color:var(--muted)">Base: <code>https://api.deepseek.com</code></div>
+              </div>
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem">
+                <div style="font-weight:600;color:var(--blue);margin-bottom:0.3rem">Anthropic (fallback)</div>
+                <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem">Used when provider is set to anthropic</div>
+                <div style="font-size:0.68rem;color:var(--muted)">Model: <code>claude-sonnet-4-20250514</code></div>
+                <div style="font-size:0.68rem;color:var(--muted)">Key: <code>ANTHROPIC_API_KEY</code></div>
+                <div style="font-size:0.68rem;color:var(--muted)">SDK: <code>@anthropic-ai/sdk</code></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:0.75rem">
+            <div class="card-header" style="margin-bottom:0.5rem">
+              <div class="card-title">🔐 Environment Variables</div>
+            </div>
+            <div class="prose" style="font-size:0.72rem">
+              <table class="compare-table">
+                <tr><th>Variable</th><th>Required</th><th>Description</th></tr>
+                <tr><td><code>DEEPSEEK_API_KEY</code></td><td>Yes</td><td>Deepseek API key for default LLM provider</td></tr>
+                <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Optional</td><td>Anthropic API key for fallback provider</td></tr>
+                <tr><td><code>LLM_PROVIDER</code></td><td>Optional</td><td>Set to "deepseek" (default) or "anthropic"</td></tr>
+                <tr><td><code>PORT</code></td><td>Optional</td><td>Server port (default 8080)</td></tr>
+                <tr><td><code>NODE_ENV</code></td><td>Optional</td><td>Environment: development | production</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:0.75rem">
+            <div class="card-header" style="margin-bottom:0.5rem">
+              <div class="card-title">🔧 Secrets Management</div>
+            </div>
+            <div class="prose" style="font-size:0.72rem">
+              <p>Secrets are stored in Fly.io and Azure Key Vault:</p>
+              <pre><code># Set Fly.io secrets
+flyctl secrets set DEEPSEEK_API_KEY=sk-...
+flyctl secrets set ANTHROPIC_API_KEY=sk-ant-...
+
+# Pull from Azure Key Vault
+DSKEY=$(az keyvault secret show --vault-name dp-kv-deliverypilot \\
+  --name deepseek-api-key --query value -o tsv)
+flyctl secrets set DEEPSEEK_API_KEY="$DSKEY"</code></pre>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        el.innerHTML = `<div class="card"><p style="color:var(--orange)">Failed to load config: ${err.message}</p></div>`;
       }
     }
 
