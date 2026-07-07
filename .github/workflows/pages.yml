@@ -29,6 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build Agents Registry
+        run: node scripts/build-registry.cjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

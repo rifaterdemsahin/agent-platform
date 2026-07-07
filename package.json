@@ -10,7 +10,8 @@
     "test": "node tests/index.js",
     "test:sanity": "node -e \"import('./tests/sanity-check.test.js').then(m=>m.testSanityCheck())\"",
     "test:budget": "node -e \"import('./tests/budget.test.js').then(m=>m.testBudgetAgent())\"",
-    "test:animation": "node -e \"import('./tests/animation.test.js').then(m=>m.testAnimationAgent())\""
+    "test:animation": "node -e \"import('./tests/animation.test.js').then(m=>m.testAnimationAgent())\"",
+    "build:registry": "node scripts/build-registry.cjs"
   },
   "dependencies": {
     "express": "^4.21.0",
