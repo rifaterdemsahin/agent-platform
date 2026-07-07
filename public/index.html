@@ -195,6 +195,7 @@
     .card.card-budget { border-left: 3px solid var(--orange); }
     .card.card-sanity { border-left: 3px solid var(--green); }
     .card.card-animation { border-left: 3px solid var(--accent); }
+    .card.card-finance { border-left: 3px solid var(--blue); }
     .card.card-sub { border-left: 2px solid var(--blue); }
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.35rem; }
     .card-title { font-size: 1.05rem; font-weight: 600; }
@@ -555,6 +556,7 @@
             <tr><th>Agent</th><th>Role</th><th>Skills</th><th>Triggers</th></tr>
             <tr><td><code>sanity-check</code></td><td>Code validation, lint, typecheck, config, deploy readiness</td><td>5</td><td>pre-commit, pre-deploy, scheduled, on-demand</td></tr>
             <tr><td><code>budget</code></td><td>Cost estimation, usage tracking, budget alerts, optimization, forecasting</td><td>5</td><td>scheduled, on-demand, threshold-alert</td></tr>
+            <tr><td><code>finance</code></td><td>Subscription tracking, payment verification, billing status across services</td><td>5</td><td>scheduled, on-demand, threshold-alert</td></tr>
           </table>
           </div>
 
@@ -686,10 +688,12 @@ npm run dev              # http://localhost:8080</code></pre>
         <a class="agents-sub-link active" data-agents-sub="sanity-check">🛡 Sanity Check</a>
         <a class="agents-sub-link" data-agents-sub="animation">🎬 Animation</a>
         <a class="agents-sub-link" data-agents-sub="budget">💰 Budget</a>
+        <a class="agents-sub-link" data-agents-sub="finance">💳 Finance</a>
       </div>
       <div id="agents-sub-sanity-check" class="agents-sub-content active"></div>
       <div id="agents-sub-animation" class="agents-sub-content"></div>
       <div id="agents-sub-budget" class="agents-sub-content"></div>
+      <div id="agents-sub-finance" class="agents-sub-content"></div>
     </div>
 
     <div id="page-test" class="page">
@@ -786,7 +790,9 @@ npm run dev              # http://localhost:8080</code></pre>
     /* ─── Navigation ─── */
     function navigateTo(hash) {
       const raw = hash.replace(/^#/, "");
-      const [page, sub] = raw.split("/");
+      const parts = raw.split("/");
+      const page = parts[0];
+      const sub = parts.slice(1).join("/") || "";
 
       document.querySelectorAll("nav a").forEach(l => l.classList.remove("active"));
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -849,11 +855,19 @@ npm run dev              # http://localhost:8080</code></pre>
     function switchAgentsSub(sub) {
       document.querySelectorAll(".agents-sub-link").forEach(l => l.classList.remove("active"));
       document.querySelectorAll(".agents-sub-content").forEach(c => c.classList.remove("active"));
-      const activeLink = document.querySelector(`.agents-sub-link[data-agents-sub="${sub}"]`);
-      if (activeLink) activeLink.classList.add("active");
-      const content = document.getElementById("agents-sub-" + sub);
-      if (content) content.classList.add("active");
-      renderAgentPage(sub);
+
+      if (sub.includes("/")) {
+        const parent = sub.split("/")[0];
+        const parentLink = document.querySelector(`.agents-sub-link[data-agents-sub="${parent}"]`);
+        if (parentLink) parentLink.classList.add("active");
+        renderSubAgentPage(sub);
+      } else {
+        const activeLink = document.querySelector(`.agents-sub-link[data-agents-sub="${sub}"]`);
+        if (activeLink) activeLink.classList.add("active");
+        const content = document.getElementById("agents-sub-" + sub);
+        if (content) content.classList.add("active");
+        renderAgentPage(sub);
+      }
     }
 
     /* ─── Test page ─── */
@@ -889,12 +903,25 @@ npm run dev              # http://localhost:8080</code></pre>
         { premise: "Agent responds to hello", conclusion: "Returns greeting", skill: "hello", params: { name: "world" } },
         { premise: "Rules check passes", conclusion: "passed = true", skill: "verify", params: {} },
       ],
+      "finance": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting with timestamp", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check passes", conclusion: "passed = true", skill: "verify", params: {} },
+        { premise: "List all subscriptions", conclusion: "Returns google-mail, godaddy, canva", skill: "list-subscriptions", params: {} },
+      ],
+      "finance/subscription-checker": [
+        { premise: "Agent responds to hello", conclusion: "Returns greeting about monitoring payments", skill: "hello", params: { name: "world" } },
+        { premise: "Rules check passes", conclusion: "passed = true", skill: "verify", params: {} },
+        { premise: "Check Google Mail payment", conclusion: "Returns Google Workspace status", skill: "check-google-mail", params: { expectedAmount: 6.00, currency: "USD" } },
+        { premise: "Check GoDaddy payment", conclusion: "Returns GoDaddy domain/hosting status", skill: "check-godaddy", params: { expectedAmount: 119.88, currency: "USD" } },
+        { premise: "Check Canva payment", conclusion: "Returns Canva Pro status", skill: "check-canva", params: { expectedAmount: 119.99, currency: "USD" } },
+        { premise: "Check all subscriptions", conclusion: "Returns combined status for all 3", skill: "check-all-subscriptions", params: {} },
+      ],
     };
 
     function renderPresets() {
       const container = document.getElementById("test-presets");
       if (!container) return;
-      const emojis = { "sanity-check": "🛡", "budget": "💰", "animation": "🎬", "budget/llm-budget": "🤖", "budget/personal-budget": "💳", "animation/remotion": "🎥", "animation/lottie": "✨" };
+      const emojis = { "sanity-check": "🛡", "budget": "💰", "animation": "🎬", "budget/llm-budget": "🤖", "budget/personal-budget": "💳", "animation/remotion": "🎥", "animation/lottie": "✨", "finance": "🏦", "finance/subscription-checker": "🔍" };
       let html = "";
       for (const [agentName, presets] of Object.entries(TEST_PRESETS)) {
         const emoji = emojis[agentName] || "📦";
@@ -1073,11 +1100,13 @@ npm run dev              # http://localhost:8080</code></pre>
       const emojis = {
         "sanity-check": "🛡", "budget": "💰", "llm-budget": "🤖", "personal-budget": "💳",
         "animation": "🎬", "remotion": "🎥", "lottie": "✨",
+        "finance": "🏦", "subscription-checker": "🔍",
       };
       const cardColors = a => {
         if (a.name.startsWith("budget")) return "card-budget";
         if (a.name.startsWith("sanity")) return "card-sanity";
         if (a.name.startsWith("animation")) return "card-animation";
+        if (a.name.startsWith("finance")) return "card-finance";
         return "";
       };
       const isSub = a => a.name.includes("/");
@@ -1100,7 +1129,7 @@ npm run dev              # http://localhost:8080</code></pre>
         return `
         <div class="card ${colorClass} ${subClass}" style="${isSub(a) ? 'margin-left:1.5rem' : ''}">
           <div class="card-header">
-            <div class="card-title">${emoji} ${a.name}${parentBadge} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "bg" : "demand"}</span></div>
+            <div class="card-title"><a href="#agents/${a.name}" style="color:var(--text);text-decoration:none">${emoji} ${isSub(a) ? a.name.split("/").pop() : a.name}</a>${parentBadge} <span class="bg-badge"><span class="pulse"></span>${a.runtime?.background ? "bg" : "demand"}</span></div>
             <div class="card-version">v${a.version}</div>
           </div>
           <div class="card-desc">${a.description || ""}</div>
@@ -1167,6 +1196,72 @@ npm run dev              # http://localhost:8080</code></pre>
       }).join("");
     }
 
+    /* ─── Sub-agent detail page ─── */
+    function renderSubAgentPage(agentName) {
+      const parent = agentName.split("/")[0];
+      const pageEl = document.getElementById("agents-sub-" + parent);
+      if (!pageEl) return;
+      pageEl.classList.add("active");
+
+      const agent = agentCache.find(a => a.name === agentName);
+      if (!agent) {
+        pageEl.innerHTML = `<div class="card"><p style="color:var(--orange)">Sub-agent "${agentName}" not found.</p></div>`;
+        return;
+      }
+
+      pageEl.innerHTML = `
+        <div style="margin-bottom:0.6rem;font-size:0.8rem">
+          <span style="color:var(--muted)">← </span>
+          <a href="#agents/${parent}" style="color:var(--blue);text-decoration:none;font-weight:600">${parent}</a>
+          <span style="color:var(--muted)"> / ${agent.name}</span>
+        </div>
+        <div class="card" style="border-left:2px solid var(--blue)">
+          <div class="card-header">
+            <div class="card-title">${agent.name} <span style="font-size:0.6rem;color:var(--blue)">↖ ${parent}</span> <span class="bg-badge"><span class="pulse"></span>${agent.runtime?.background ? "bg" : "demand"}</span></div>
+            <div class="card-version">v${agent.version}</div>
+          </div>
+          <div class="card-desc">${agent.description || ""}</div>
+          <div class="specs-row">
+            <span><span class="label">Spec:</span> <code>agents/${agent.name}/agent.json</code></span>
+            <span><span class="label">LLM:</span> ${agent.runtime?.llm || "—"}</span>
+            <span><span class="label">Poll:</span> ${agent.runtime?.pollingIntervalMs ? (agent.runtime.pollingIntervalMs / 1000) + "s" : "—"}</span>
+          </div>
+          <div>${(agent.triggers || []).map(t => `<span class="trigger-badge">${t}</span>`).join("")}</div>
+
+          <h3 style="font-size:0.82rem;margin:0.75rem 0 0.4rem;color:var(--muted)">Skills</h3>
+          <div class="skills">${(agent.skills || []).map(s => `
+            <span class="skill-tag" onclick="toggleSkill('${agent.name}', '${s.name}')" title="${s.description}">${s.name}</span>
+          `).join("")}</div>
+          <div id="skill-detail-${agent.name}"></div>
+
+          <details class="endpoints">
+            <summary>API Endpoints</summary>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}/skills</span></div>
+            <div class="endpoint"><span class="method">GET</span><span class="path">/api/agents/tree/${agent.name}/code</span></div>
+            <div class="endpoint"><span class="method post">POST</span><span class="path">/api/agents/tree/${agent.name}/invoke</span></div>
+          </details>
+
+          <div style="margin-top:0.6rem;font-size:0.62rem;display:flex;gap:0.6rem;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${agent.name}/agent.json" target="_blank" style="color:var(--muted);text-decoration:none">⬣ edit spec</a>
+            <a href="https://github.com/rifaterdemsahin/agent-platform/edit/main/agents/${agent.name}/index.js" target="_blank" style="color:var(--muted);text-decoration:none">⌨ edit code</a>
+          </div>
+
+          <div class="invoke-form">
+            <h3 style="font-size:0.8rem;margin-bottom:0.4rem">Invoke a Skill</h3>
+            <label>Skill</label>
+            <select id="invoke-skill-${agent.name}">
+              ${(agent.skills || []).map(s => `<option value="${s.name}">${s.name}</option>`).join("")}
+            </select>
+            <label>Params (JSON)</label>
+            <textarea id="invoke-params-${agent.name}" rows="3" placeholder='{"path": "."}'>{"path": "."}</textarea>
+            <button onclick="invokeAgent('${agent.name}')">Send Invoke</button>
+            <pre class="invoke-result" id="invoke-result-${agent.name}"></pre>
+          </div>
+        </div>
+      `;
+    }
+
     /* ─── Agent detail page ─── */
     function renderAgentPage(agentName) {
       const pageEl = document.getElementById("agents-sub-" + agentName);
@@ -1185,7 +1280,7 @@ npm run dev              # http://localhost:8080</code></pre>
           subBlock += subAgents.map(sa => `
             <div class="card" style="margin-left:1.5rem;border-left:2px solid var(--blue);padding:0.75rem;">
               <div class="card-header">
-                <div class="card-title" style="font-size:0.9rem">${sa.name} <span style="font-size:0.6rem;color:var(--blue)">← ${agentName}</span></div>
+                <div class="card-title" style="font-size:0.9rem"><a href="#agents/${sa.name}" style="color:var(--text);text-decoration:none">${sa.name.split("/").pop()}</a> <span style="font-size:0.6rem;color:var(--blue)">← ${agentName}</span></div>
                 <div class="card-version">v${sa.version}</div>
               </div>
               <div class="card-desc">${sa.description || ""}</div>

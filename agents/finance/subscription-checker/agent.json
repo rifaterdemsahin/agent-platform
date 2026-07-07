@@ -1,0 +1,59 @@
+{
+  "name": "subscription-checker",
+  "version": "1.0.0",
+  "description": "Subscription checking sub-agent — verifies that recurring payments for Google Mail, GoDaddy, and Canva are completed. Communicates with the parent finance agent to record and track payment status.",
+  "parent": "finance",
+  "runtime": {
+    "type": "node",
+    "llm": "claude-sonnet-4-20250514",
+    "background": true,
+    "pollingIntervalMs": 86400000
+  },
+  "skills": [
+    { "name": "hello", "description": "Basic identity check — returns a greeting confirming the agent is running", "parameters": { "name": "string — optional name" } },
+    { "name": "verify", "description": "Rules check — evaluate an expression to verify agent integrity", "parameters": { "expression": "string — optional JS expression to evaluate" } },
+    {
+      "name": "check-google-mail",
+      "description": "Check if Google Mail (Google Workspace) subscription payment is completed",
+      "parameters": {
+        "expectedAmount": "number — expected payment amount in USD",
+        "currency": "string — USD, EUR, etc."
+      }
+    },
+    {
+      "name": "check-godaddy",
+      "description": "Check if GoDaddy domain/hosting subscription payment is completed",
+      "parameters": {
+        "expectedAmount": "number — expected payment amount in USD",
+        "currency": "string — USD, EUR, etc."
+      }
+    },
+    {
+      "name": "check-canva",
+      "description": "Check if Canva Pro subscription payment is completed",
+      "parameters": {
+        "expectedAmount": "number — expected payment amount in USD",
+        "currency": "string — USD, EUR, etc."
+      }
+    },
+    {
+      "name": "check-all-subscriptions",
+      "description": "Run a full check on all subscriptions — Google Mail, GoDaddy, and Canva — and report combined status",
+      "parameters": {}
+    },
+    {
+      "name": "report-to-finance",
+      "description": "Send subscription check results to the parent finance agent for record-keeping",
+      "parameters": {
+        "service": "string — 'google-mail' | 'godaddy' | 'canva' | 'all'"
+      }
+    }
+  ],
+  "entrypoint": "index.js",
+  "triggers": ["scheduled", "on-demand"],
+  "inheritsFrom": "finance",
+  "api": {
+    "invokeUrl": "/api/agents/finance/subscription-checker/invoke",
+    "skillsUrl": "/api/agents/finance/subscription-checker/skills"
+  }
+}
